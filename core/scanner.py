@@ -5,12 +5,10 @@ VIDEO_EXTENSIONS = {
     ".wmv", ".mpg", ".mpeg", ".ts"
 }
 
-POSTER_FILES = {
+POSTER_NAMES = {
     "poster.jpg",
     "folder.jpg"
 }
-
-NFO_EXTENSION = ".nfo"
 
 SUBTITLE_EXTENSIONS = {
     ".srt", ".ass", ".ssa", ".sub"
@@ -19,17 +17,17 @@ SUBTITLE_EXTENSIONS = {
 
 class LibraryScanner:
 
-    def __init__(self, root_folder):
-        self.root = Path(root_folder)
+    def __init__(self, root):
+        self.root = Path(root)
 
     def scan(self):
 
         stats = {
-            "categories": 0,
             "movies": 0,
+            "categories": 0,
             "posters": 0,
             "nfo": 0,
-            "subtitles": 0
+            "subtitles": 0,
         }
 
         ignore = {
@@ -37,32 +35,33 @@ class LibraryScanner:
             "System Volume Information"
         }
 
-        for category in self.root.iterdir():
+        for folder in self.root.iterdir():
 
-            if not category.is_dir():
+            if not folder.is_dir():
                 continue
 
-            if category.name in ignore:
+            if folder.name in ignore:
                 continue
 
             stats["categories"] += 1
 
-            for item in category.rglob("*"):
+            for file in folder.rglob("*"):
 
-                if item.is_file():
+                if not file.is_file():
+                    continue
 
-                    suffix = item.suffix.lower()
+                suffix = file.suffix.lower()
 
-                    if suffix in VIDEO_EXTENSIONS:
-                        stats["movies"] += 1
+                if suffix in VIDEO_EXTENSIONS:
+                    stats["movies"] += 1
 
-                    elif suffix == NFO_EXTENSION:
-                        stats["nfo"] += 1
+                elif suffix == ".nfo":
+                    stats["nfo"] += 1
 
-                    elif suffix in SUBTITLE_EXTENSIONS:
-                        stats["subtitles"] += 1
+                elif suffix in SUBTITLE_EXTENSIONS:
+                    stats["subtitles"] += 1
 
-                    elif item.name.lower() in POSTER_FILES:
-                        stats["posters"] += 1
+                elif file.name.lower() in POSTER_NAMES:
+                    stats["posters"] += 1
 
         return stats
