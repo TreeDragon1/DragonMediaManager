@@ -1,3 +1,11 @@
+"""
+Dragon Media Manager
+Dashboard
+
+Version: v0.1.3-alpha
+Codename: Dragon's Eye
+"""
+
 import customtkinter as ctk
 from core.scanner import LibraryScanner
 
@@ -8,70 +16,92 @@ class Dashboard(ctk.CTk):
         super().__init__()
 
         self.title("🐉 Dragon Media Manager")
-        self.geometry("1100x700")
+        self.geometry("1200x750")
+
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
 
         self.build_ui()
 
     def build_ui(self):
 
+        # ------------------------------
+        # Header
+        # ------------------------------
+
+        header = ctk.CTkFrame(self)
+        header.pack(fill="x", padx=20, pady=(20, 10))
+
         title = ctk.CTkLabel(
-            self,
+            header,
             text="🐉 Dragon Media Manager",
             font=("Arial", 30, "bold")
         )
-        title.pack(pady=(20, 5))
+        title.pack(anchor="w", padx=20, pady=(15, 0))
 
         subtitle = ctk.CTkLabel(
-            self,
+            header,
             text="Organize. Protect. Enjoy.",
             font=("Arial", 16)
         )
-        subtitle.pack(pady=(0, 20))
+        subtitle.pack(anchor="w", padx=20, pady=(0, 15))
 
-        cards = ctk.CTkFrame(self)
-        cards.pack(fill="x", padx=20)
+        # ------------------------------
+        # Statistics
+        # ------------------------------
 
-        self.movie_card = self.create_card(cards, "🎬 Movies", "0")
-        self.category_card = self.create_card(cards, "📂 Categories", "0")
-        self.poster_card = self.create_card(cards, "🖼 Posters", "0")
-        self.nfo_card = self.create_card(cards, "📄 NFO Files", "0")
+        stats = ctk.CTkFrame(self)
+        stats.pack(fill="x", padx=20)
+
+        self.movie_card = self.create_card(stats, "🎬 Movies", "0")
+        self.category_card = self.create_card(stats, "📂 Categories", "0")
+        self.poster_card = self.create_card(stats, "🖼 Posters", "0")
+        self.nfo_card = self.create_card(stats, "📄 NFO Files", "0")
 
         self.movie_card.grid(row=0, column=0, padx=10, pady=10)
         self.category_card.grid(row=0, column=1, padx=10, pady=10)
         self.poster_card.grid(row=0, column=2, padx=10, pady=10)
         self.nfo_card.grid(row=0, column=3, padx=10, pady=10)
 
+        # ------------------------------
+        # Scan Button
+        # ------------------------------
+
         self.scan_button = ctk.CTkButton(
             self,
             text="🔍 Scan Library",
             width=250,
+            height=45,
             command=self.scan_library
         )
 
         self.scan_button.pack(pady=20)
 
-        self.log = ctk.CTkTextbox(
-            self,
-            height=250
-        )
+        # ------------------------------
+        # Activity Log
+        # ------------------------------
+
+        self.log = ctk.CTkTextbox(self, height=280)
 
         self.log.pack(
             fill="both",
             expand=True,
             padx=20,
-            pady=10
+            pady=(0, 20)
         )
 
-        self.log.insert("end", "🐉 Dragon Media Manager started...\n")
-        self.log.insert("end", "Status: Ready\n")
+        self.write_log("🐉 Dragon Media Manager started")
+        self.write_log("System ready.")
 
     def create_card(self, parent, title, value):
 
         frame = ctk.CTkFrame(
             parent,
-            width=220,
+            width=240,
             height=120
         )
+
+        frame.grid_propagate(False)
 
         label = ctk.CTkLabel(
             frame,
@@ -93,12 +123,15 @@ class Dashboard(ctk.CTk):
 
         return frame
 
+    def write_log(self, message):
+        self.log.insert("end", message + "\n")
+        self.log.see("end")
+
     def scan_library(self):
 
-        self.log.insert(
-            "end",
-            "\n🔍 Scanning library...\n"
-        )
+        self.write_log("🔍 Scanning library...")
+
+        self.scan_button.configure(state="disabled")
 
         self.update()
 
@@ -124,11 +157,11 @@ class Dashboard(ctk.CTk):
             text=str(stats["nfo"])
         )
 
-        self.log.insert("end", "✅ Scan Complete\n")
-        self.log.insert("end", f"🎬 Movies: {stats['movies']}\n")
-        self.log.insert("end", f"📂 Categories: {stats['categories']}\n")
-        self.log.insert("end", f"🖼 Posters: {stats['posters']}\n")
-        self.log.insert("end", f"📄 NFO Files: {stats['nfo']}\n")
-        self.log.insert("end", f"💬 Subtitles: {stats['subtitles']}\n")
+        self.write_log("✅ Scan complete")
+        self.write_log(f"🎬 Movies: {stats['movies']}")
+        self.write_log(f"📂 Categories: {stats['categories']}")
+        self.write_log(f"🖼 Posters: {stats['posters']}")
+        self.write_log(f"📄 NFO Files: {stats['nfo']}")
+        self.write_log(f"💬 Subtitles: {stats['subtitles']}")
 
-        self.log.see("end")
+        self.scan_button.configure(state="normal")
