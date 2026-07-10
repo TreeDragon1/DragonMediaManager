@@ -11,6 +11,7 @@ from core.scanner import LibraryScanner
 from gui.sidebar import Sidebar
 from gui.dragon_health import DragonHealth
 from gui.dragon_ai import DragonAIFrame
+from gui.actions import DragonActionsFrame
 
 
 class Dashboard(ctk.CTk):
@@ -32,7 +33,7 @@ class Dashboard(ctk.CTk):
     def build_ui(self):
 
         # ==========================================
-        # Dragon Command Panel
+        # Dragon Command Panel (Sidebar)
         # ==========================================
 
         self.sidebar = Sidebar(self)
@@ -119,6 +120,17 @@ class Dashboard(ctk.CTk):
         )
 
         # ==========================================
+        # Dragon Command Center
+        # ==========================================
+
+        self.actions = DragonActionsFrame(main)
+        self.actions.pack(
+            fill="x",
+            padx=20,
+            pady=(0, 20)
+        )
+
+        # ==========================================
         # Dragon Log
         # ==========================================
 
@@ -142,9 +154,10 @@ class Dashboard(ctk.CTk):
         )
 
         self.write_log("🐉 Dragon Media Manager started")
-        self.write_log("Dragon's Eye Build 5.5 loaded")
+        self.write_log("Dragon's Eye Build 6 loaded")
         self.write_log("Dragon Health initialized")
         self.write_log("Dragon AI initialized")
+        self.write_log("Dragon Command Center initialized")
 
     def create_card(self, parent, title, value):
 

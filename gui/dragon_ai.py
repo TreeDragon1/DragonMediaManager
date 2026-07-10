@@ -3,7 +3,7 @@ Dragon Media Manager
 Dragon AI Panel
 
 Version: v0.1.3-alpha
-Build 5.5
+Build 6
 """
 
 import customtkinter as ctk
@@ -25,7 +25,8 @@ class DragonAIFrame(ctk.CTkFrame):
 
         title.pack(anchor="w", padx=20, pady=(15, 10))
 
-        message = DragonAI().get_message()
+        dragon = DragonAI()
+        message = dragon.get_message()
 
         self.textbox = ctk.CTkTextbox(
             self,
