@@ -10,6 +10,7 @@ import customtkinter as ctk
 from core.scanner import LibraryScanner
 from gui.sidebar import Sidebar
 from gui.dragon_health import DragonHealth
+from gui.dragon_ai import DragonAIFrame
 
 
 class Dashboard(ctk.CTk):
@@ -18,7 +19,7 @@ class Dashboard(ctk.CTk):
         super().__init__()
 
         self.title("🐉 Dragon Media Manager")
-        self.geometry("1400x850")
+        self.geometry("1400x1000")
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
@@ -49,8 +50,6 @@ class Dashboard(ctk.CTk):
             padx=20,
             pady=20
         )
-
-        # Title
 
         title = ctk.CTkLabel(
             main,
@@ -109,24 +108,43 @@ class Dashboard(ctk.CTk):
         )
 
         # ==========================================
-        # Activity Log
+        # Dragon AI
         # ==========================================
+
+        self.ai = DragonAIFrame(main)
+        self.ai.pack(
+            fill="x",
+            padx=20,
+            pady=(0, 20)
+        )
+
+        # ==========================================
+        # Dragon Log
+        # ==========================================
+
+        log_title = ctk.CTkLabel(
+            main,
+            text="📜 Dragon Log",
+            font=("Arial", 18, "bold")
+        )
+        log_title.pack(anchor="w", padx=20)
 
         self.log = ctk.CTkTextbox(
             main,
-            height=220
+            height=180
         )
 
         self.log.pack(
             fill="both",
             expand=True,
             padx=20,
-            pady=(0, 20)
+            pady=(5, 20)
         )
 
         self.write_log("🐉 Dragon Media Manager started")
-        self.write_log("Dragon's Eye Build 3 loaded")
+        self.write_log("Dragon's Eye Build 5.5 loaded")
         self.write_log("Dragon Health initialized")
+        self.write_log("Dragon AI initialized")
 
     def create_card(self, parent, title, value):
 
@@ -171,27 +189,13 @@ class Dashboard(ctk.CTk):
 
         self.update()
 
-        scanner = LibraryScanner(
-            "/media/treedragon/Movies1"
-        )
-
+        scanner = LibraryScanner("/media/treedragon/Movies1")
         stats = scanner.scan()
 
-        self.movie_card.value_label.configure(
-            text=str(stats["movies"])
-        )
-
-        self.category_card.value_label.configure(
-            text=str(stats["categories"])
-        )
-
-        self.poster_card.value_label.configure(
-            text=str(stats["posters"])
-        )
-
-        self.nfo_card.value_label.configure(
-            text=str(stats["nfo"])
-        )
+        self.movie_card.value_label.configure(text=str(stats["movies"]))
+        self.category_card.value_label.configure(text=str(stats["categories"]))
+        self.poster_card.value_label.configure(text=str(stats["posters"]))
+        self.nfo_card.value_label.configure(text=str(stats["nfo"]))
 
         self.write_log("✅ Scan Complete")
         self.write_log(f"🎬 Movies: {stats['movies']}")
