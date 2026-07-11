@@ -3,31 +3,41 @@ Dragon Media Manager
 Dragon Actions
 
 Version: v0.1.3-alpha
-Build 6
+Build 7
 """
 
 import webbrowser
+
+from core.settings import (
+    JELLYFIN_URL,
+    RADARR_URL,
+    SONARR_URL,
+    PROWLARR_URL,
+    BAZARR_URL,
+    JELLYSEERR_URL,
+    PORTAINER_URL,
+)
 
 
 class DragonActions:
 
     def open_jellyfin(self):
-        webbrowser.open("http://localhost:8096")
+        webbrowser.open(JELLYFIN_URL)
 
     def open_radarr(self):
-        webbrowser.open("http://localhost:7878")
+        webbrowser.open(RADARR_URL)
 
     def open_sonarr(self):
-        webbrowser.open("http://localhost:8989")
+        webbrowser.open(SONARR_URL)
 
     def open_prowlarr(self):
-        webbrowser.open("http://localhost:9696")
+        webbrowser.open(PROWLARR_URL)
 
     def open_bazarr(self):
-        webbrowser.open("http://localhost:6767")
+        webbrowser.open(BAZARR_URL)
 
     def open_jellyseerr(self):
-        webbrowser.open("http://localhost:5055")
+        webbrowser.open(JELLYSEERR_URL)
 
     def open_portainer(self):
-        webbrowser.open("https://localhost:9443")
+        webbrowser.open(PORTAINER_URL)
