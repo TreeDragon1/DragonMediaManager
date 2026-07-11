@@ -3,104 +3,85 @@ Dragon Media Manager
 Dragon Health Core
 
 Version: v0.1.3-alpha
-Build 4
+Build 8.2.2
 """
 
 import subprocess
 import shutil
 
+SERVICES={
+    "🐳 Docker":"docker",
+    "🎬 Jellyfin":"jellyfin",
+    "🎞️ Radarr":"radarr",
+    "📺 Sonarr":"sonarr",
+    "🔍 Prowlarr":"prowlarr",
+    "💬 Bazarr":"bazarr",
+    "🎬 Jellyseerr":"jellyseerr",
+    "🐳 Portainer":"portainer",
+}
 
 class DragonHealthCore:
 
     def get_health(self):
-
+        services=self.check_services()
+        score=self.calculate_score(services)
         return {
-            "docker": self.check_docker(),
-            "jellyfin": self.check_jellyfin(),
-            "movies": self.check_movies_drive(),
-            "memory": self.check_memory(),
-            "score": self.calculate_score()
+            "services":services,
+            "movies":self.check_movies_drive(),
+            "memory":self.check_memory(),
+            "status":self.overall_status(score),
+            "score":score,
+            # backward compatibility
+            "docker":services["🐳 Docker"],
+            "jellyfin":services["🎬 Jellyfin"],
         }
 
-    # -----------------------------------------
-
-    def check_docker(self):
-
+    def docker_ps(self):
         try:
-
-            result = subprocess.run(
-                ["docker", "ps"],
-                capture_output=True,
-                text=True
-            )
-
-            if result.returncode == 0:
-                return "🟢 Running"
-
-            return "🔴 Offline"
-
+            r=subprocess.run(["docker","ps"],capture_output=True,text=True)
+            if r.returncode!=0:
+                return None
+            return r.stdout.lower()
         except Exception:
-            return "🔴 Error"
+            return None
 
-    # -----------------------------------------
-
-    def check_jellyfin(self):
-
-        try:
-
-            result = subprocess.run(
-                ["docker", "ps"],
-                capture_output=True,
-                text=True
-            )
-
-            if "jellyfin" in result.stdout.lower():
-                return "🟢 Online"
-
-            return "🔴 Offline"
-
-        except Exception:
-            return "🔴 Error"
-
-    # -----------------------------------------
+    def check_services(self):
+        ps=self.docker_ps()
+        result={}
+        if ps is None:
+            for name in SERVICES:
+                result[name]="🔴 Offline"
+            return result
+        result["🐳 Docker"]="🟢 Running"
+        for label,container in list(SERVICES.items())[1:]:
+            result[label]="🟢 Online" if container in ps else "🔴 Offline"
+        return result
 
     def check_movies_drive(self):
-
-        total, used, free = shutil.disk_usage(
-            "/media/treedragon/Movies1"
-        )
-
-        free_tb = free / (1024 ** 4)
-
-        return f"{free_tb:.1f} TB Free"
-
-    # -----------------------------------------
+        try:
+            _,_,free=shutil.disk_usage("/media/treedragon/Movies1")
+            return f"{free/(1024**4):.1f} TB Free"
+        except Exception:
+            return "--"
 
     def check_memory(self):
-
         try:
-
-            result = subprocess.run(
-                ["free", "-h"],
-                capture_output=True,
-                text=True
-            )
-
-            for line in result.stdout.splitlines():
-
+            r=subprocess.run(["free","-h"],capture_output=True,text=True)
+            for line in r.stdout.splitlines():
                 if line.startswith("Mem:"):
-
-                    parts = line.split()
-
-                    return f"{parts[6]} Available"
-
+                    return f"{line.split()[6]} Available"
         except Exception:
             pass
-
         return "--"
 
-    # -----------------------------------------
+    def calculate_score(self,services):
+        total=len(services)
+        online=sum(1 for v in services.values() if "🟢" in v)
+        return round((online/total)*100)
 
-    def calculate_score(self):
-
-        return 99
+    def overall_status(self,score):
+        if score>=90:
+            return "🟢 Excellent"
+        if score>=70:
+            return "🟡 Good"
+        return "🔴 Needs Attention"
