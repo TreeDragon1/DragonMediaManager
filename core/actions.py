@@ -3,7 +3,7 @@ Dragon Media Manager
 Dragon Actions
 
 Version: v0.1.3-alpha
-Build 7
+Build 8.5
 """
 
 import webbrowser
@@ -15,6 +15,7 @@ from core.settings import (
     PROWLARR_URL,
     BAZARR_URL,
     JELLYSEERR_URL,
+    QBITTORRENT_URL,
     PORTAINER_URL,
 )
 
@@ -38,6 +39,9 @@ class DragonActions:
 
     def open_jellyseerr(self):
         webbrowser.open(JELLYSEERR_URL)
+
+    def open_qbittorrent(self):
+        webbrowser.open(QBITTORRENT_URL)
 
     def open_portainer(self):
         webbrowser.open(PORTAINER_URL)

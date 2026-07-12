@@ -3,7 +3,7 @@ Dragon Media Manager
 Sidebar
 
 Version: v0.1.3-alpha
-Build 8
+Build 8.5
 Codename: Dragon Control
 """
 
@@ -23,85 +23,63 @@ class Sidebar(ctk.CTkFrame):
         self.configure(fg_color="#202225")
         self.pack_propagate(False)
 
-        # ==========================================
-        # Logo
-        # ==========================================
-
-        logo = ctk.CTkLabel(
+        ctk.CTkLabel(
             self,
             text="🐉",
-            font=("Arial", 46)
-        )
-        logo.pack(pady=(20, 5))
+            font=("Arial", 42)
+        ).pack(pady=(15, 0))
 
-        # ==========================================
-        # Title
-        # ==========================================
-
-        title = ctk.CTkLabel(
+        ctk.CTkLabel(
             self,
             text=APP_NAME.replace(" ", "\n", 1),
             font=("Arial", 20, "bold"),
             justify="center"
-        )
-        title.pack(pady=(0, 20))
+        ).pack(pady=(0, 15))
 
-        # ==========================================
-        # Navigation
-        # ==========================================
+        self.make_section("Navigation")
 
         self.make_button("🏠 Dashboard")
-
         self.make_button("🎬 Movies")
-
         self.make_button("📺 TV Shows")
+        self.make_button("⚙️ Settings")
 
-        self.make_button("⚙ Settings")
+        self.make_section("🚀 Quick Launch")
 
-        # ==========================================
-        # Quick Launch
-        # ==========================================
+        launches = [
+            ("🎬 Jellyfin", self.actions.open_jellyfin),
+            ("🎞️ Radarr", self.actions.open_radarr),
+            ("📺 Sonarr", self.actions.open_sonarr),
+            ("🔍 Prowlarr", self.actions.open_prowlarr),
+            ("💬 Bazarr", self.actions.open_bazarr),
+            ("🎟️ Jellyseerr", self.actions.open_jellyseerr),
+            ("⬇️ qBittorrent", self.actions.open_qbittorrent),
+            ("🐳 Portainer", self.actions.open_portainer),
+        ]
 
-        quick = ctk.CTkLabel(
-            self,
-            text="Quick Launch",
-            font=("Arial", 14, "bold")
-        )
-        quick.pack(pady=(25, 5))
+        for text, cmd in launches:
+            self.make_button(text, cmd)
 
-        self.make_button(
-            "🪼 Jellyfin",
-            self.actions.open_jellyfin
-        )
-
-        self.make_button(
-            "🎞 Radarr",
-            self.actions.open_radarr
-        )
-
-        # ==========================================
-        # Version
-        # ==========================================
-
-        version = ctk.CTkLabel(
+        ctk.CTkLabel(
             self,
             text=f"{VERSION}\nBuild {BUILD}",
-            font=("Arial", 12),
+            font=("Arial", 11),
             justify="center"
-        )
+        ).pack(side="bottom", pady=15)
 
-        version.pack(side="bottom", pady=20)
+    def make_section(self, title):
+        ctk.CTkLabel(
+            self,
+            text=title,
+            font=("Arial", 14, "bold")
+        ).pack(pady=(12, 6))
 
     def make_button(self, text, command=None):
-
-        button = ctk.CTkButton(
+        btn = ctk.CTkButton(
             self,
             text=text,
             width=180,
-            height=40,
+            height=34,
             command=command
         )
-
-        button.pack(pady=6, padx=20)
-
-        return button
+        btn.pack(padx=20, pady=3)
+        return btn

@@ -1,10 +1,9 @@
-
 """
 Dragon Media Manager
 Dragon Health Panel
 
 Version: v0.1.3-alpha
-Build 8.2.1
+Build 8.5.3
 """
 
 import customtkinter as ctk
@@ -18,15 +17,8 @@ class DragonHealth(ctk.CTkFrame):
 
         ctk.CTkLabel(self,text="🐉 Dragon Health",font=("Arial",22,"bold")).pack(anchor="w",padx=20,pady=(15,10))
 
-        services=self.health.get("services")
-        if services:
-            for service,status in services.items():
-                self.create_row(service,status)
-        else:
-            self.create_row("🐳 Docker",self.health.get("docker","--"))
-            self.create_row("🎬 Jellyfin",self.health.get("jellyfin","--"))
-            for name in ["🎞️ Radarr","📺 Sonarr","🔍 Prowlarr","💬 Bazarr","🎬 Jellyseerr","🐳 Portainer"]:
-                self.create_row(name,"🔴 Offline")
+        for service,status in self.health.get("services",{}).items():
+            self.create_row(service,status)
 
         self.separator()
         self.create_row("💾 Movies Drive",self.health.get("movies","--"))
@@ -34,8 +26,14 @@ class DragonHealth(ctk.CTkFrame):
         self.separator()
 
         ctk.CTkLabel(self,text="Dragon Status",font=("Arial",18,"bold")).pack()
-        ctk.CTkLabel(self,text=self.health.get("status","🟢 Excellent"),font=("Arial",20,"bold")).pack(pady=(0,10))
-        ctk.CTkLabel(self,text=f"Dragon Score: {self.health.get('score',0)}%",font=("Arial",18,"bold")).pack(pady=(0,20))
+
+        status=self.health.get("status","Excellent")
+        colour="lime green" if "Excellent" in status else ("orange" if "Good" in status else "red")
+        ctk.CTkLabel(self,text=status.replace("🟢 ","").replace("🟡 ","").replace("🔴 ",""),
+                     text_color=colour,font=("Arial",20,"bold")).pack(pady=(0,10))
+
+        ctk.CTkLabel(self,text=f"Dragon Score: {self.health.get('score',0)}%",
+                     font=("Arial",18,"bold")).pack(pady=(0,20))
 
     def separator(self):
         ctk.CTkLabel(self,text="─"*30).pack(fill="x",padx=20,pady=10)
@@ -43,5 +41,15 @@ class DragonHealth(ctk.CTkFrame):
     def create_row(self,title,value):
         row=ctk.CTkFrame(self,fg_color="transparent")
         row.pack(fill="x",padx=20,pady=4)
+
         ctk.CTkLabel(row,text=title,font=("Arial",15)).pack(side="left")
-        ctk.CTkLabel(row,text=value,font=("Arial",15,"bold")).pack(side="right")
+
+        clean=value.replace("🟢 ","").replace("🔴 ","").replace("🟡 ","")
+        if "Online" in value or "Running" in value:
+            colour="lime green"
+        elif "Offline" in value:
+            colour="red"
+        else:
+            colour="orange"
+
+        ctk.CTkLabel(row,text=clean,text_color=colour,font=("Arial",15,"bold")).pack(side="right")
