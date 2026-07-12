@@ -1,17 +1,23 @@
 """
 Dragon Media Manager
-Dashboard
+Dragon Command Center
 
-Version: v0.1.3-alpha
-Codename: Dragon's Eye
+Build 9.0.2
+Sprint 1
 """
 
 import customtkinter as ctk
+
 from core.scanner import LibraryScanner
+
 from gui.sidebar import Sidebar
 from gui.dragon_health import DragonHealth
 from gui.dragon_ai import DragonAIFrame
-from gui.actions import DragonActionsFrame
+
+from gui.widgets.action_bar import ActionBar
+from gui.widgets.downloads_panel import DownloadsPanel
+from gui.widgets.recent_activity import RecentActivity
+from gui.widgets.status_bar import StatusBar
 
 
 class Dashboard(ctk.CTk):
@@ -20,7 +26,7 @@ class Dashboard(ctk.CTk):
         super().__init__()
 
         self.title("🐉 Dragon Media Manager")
-        self.geometry("1400x1000")
+        self.geometry("1550x980")
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
@@ -30,21 +36,44 @@ class Dashboard(ctk.CTk):
 
         self.build_ui()
 
+    #################################################################
+    # BUILD USER INTERFACE
+    #################################################################
+
     def build_ui(self):
 
-        # ==========================================
-        # Dragon Command Panel (Sidebar)
-        # ==========================================
+        self.build_sidebar()
+        self.build_main()
+        self.build_header()
+        self.build_statistics()
+        self.build_action_bar()
+        self.build_content()
+        self.build_log()
+        self.build_statusbar()
+
+    #################################################################
+    # SIDEBAR
+    #################################################################
+
+    def build_sidebar(self):
 
         self.sidebar = Sidebar(self)
-        self.sidebar.grid(row=0, column=0, sticky="ns")
 
-        # ==========================================
-        # Main Dashboard
-        # ==========================================
+        self.sidebar.grid(
+            row=0,
+            column=0,
+            sticky="ns"
+        )
 
-        main = ctk.CTkFrame(self)
-        main.grid(
+    #################################################################
+    # MAIN FRAME
+    #################################################################
+
+    def build_main(self):
+
+        self.main = ctk.CTkFrame(self)
+
+        self.main.grid(
             row=0,
             column=1,
             sticky="nsew",
@@ -52,169 +81,385 @@ class Dashboard(ctk.CTk):
             pady=20
         )
 
-        title = ctk.CTkLabel(
-            main,
+        self.main.grid_columnconfigure(0, weight=1)
+
+        self.main.grid_rowconfigure(3, weight=1)
+        self.main.grid_rowconfigure(4, weight=1)
+
+    #################################################################
+    # HEADER
+    #################################################################
+
+    def build_header(self):
+
+        header = ctk.CTkFrame(self.main)
+
+        header.grid(
+            row=0,
+            column=0,
+            sticky="ew",
+            padx=10,
+            pady=(10,15)
+        )
+
+        header.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(
+            header,
             text="🐉 Dragon Media Manager",
-            font=("Arial", 30, "bold")
-        )
-        title.pack(pady=(20, 5))
-
-        subtitle = ctk.CTkLabel(
-            main,
-            text="Your Personal Media Command Center",
-            font=("Arial", 16)
-        )
-        subtitle.pack(pady=(0, 20))
-
-        # ==========================================
-        # Dashboard Cards
-        # ==========================================
-
-        stats = ctk.CTkFrame(main)
-        stats.pack(fill="x", padx=20)
-
-        self.movie_card = self.create_card(stats, "🎬 Movies", "0")
-        self.category_card = self.create_card(stats, "📂 Categories", "0")
-        self.poster_card = self.create_card(stats, "🖼 Posters", "0")
-        self.nfo_card = self.create_card(stats, "📄 NFO Files", "0")
-
-        self.movie_card.grid(row=0, column=0, padx=10, pady=10)
-        self.category_card.grid(row=0, column=1, padx=10, pady=10)
-        self.poster_card.grid(row=0, column=2, padx=10, pady=10)
-        self.nfo_card.grid(row=0, column=3, padx=10, pady=10)
-
-        # ==========================================
-        # Scan Button
-        # ==========================================
-
-        self.scan_button = ctk.CTkButton(
-            main,
-            text="🔍 Scan Library",
-            width=250,
-            height=40,
-            command=self.scan_library
+            font=("Arial",30,"bold")
+        ).grid(
+            row=0,
+            column=0,
+            sticky="w",
+            padx=15,
+            pady=(12,2)
         )
 
-        self.scan_button.pack(pady=20)
-
-        # ==========================================
-        # Dragon Health
-        # ==========================================
-
-        self.health = DragonHealth(main)
-        self.health.pack(
-            fill="x",
-            padx=20,
-            pady=(0, 20)
+        ctk.CTkLabel(
+            header,
+            text="Dragon Command Center",
+            font=("Arial",16)
+        ).grid(
+            row=1,
+            column=0,
+            sticky="w",
+            padx=15,
+            pady=(0,12)
         )
 
-        # ==========================================
-        # Dragon AI
-        # ==========================================
-
-        self.ai = DragonAIFrame(main)
-        self.ai.pack(
-            fill="x",
-            padx=20,
-            pady=(0, 20)
+        self.header_status = ctk.CTkLabel(
+            header,
+            text="🟢 Online",
+            font=("Arial",16,"bold")
         )
 
-        # ==========================================
-        # Dragon Command Center
-        # ==========================================
+        self.header_status.grid(
+            row=0,
+            column=1,
+            rowspan=2,
+            padx=20
+        )
+            #################################################################
+    # STATISTICS
+    #################################################################
 
-        self.actions = DragonActionsFrame(main)
-        self.actions.pack(
-            fill="x",
-            padx=20,
-            pady=(0, 20)
+    def create_card(self, parent, title, value):
+
+        frame = ctk.CTkFrame(parent)
+
+        frame.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(
+            frame,
+            text=title,
+            font=("Arial", 16, "bold")
+        ).grid(
+            row=0,
+            column=0,
+            pady=(12,4)
         )
 
-        # ==========================================
-        # Dragon Log
-        # ==========================================
+        value_label = ctk.CTkLabel(
+            frame,
+            text=value,
+            font=("Arial",30)
+        )
 
-        log_title = ctk.CTkLabel(
-            main,
+        value_label.grid(
+            row=1,
+            column=0,
+            pady=(0,12)
+        )
+
+        frame.value_label = value_label
+
+        return frame
+
+
+    def build_statistics(self):
+
+        stats = ctk.CTkFrame(self.main)
+
+        stats.grid(
+            row=1,
+            column=0,
+            sticky="ew",
+            padx=10,
+            pady=(0,15)
+        )
+
+        for i in range(4):
+            stats.grid_columnconfigure(i, weight=1)
+
+        self.movie_card = self.create_card(
+            stats,
+            "🎬 Movies",
+            "0"
+        )
+
+        self.category_card = self.create_card(
+            stats,
+            "📂 Categories",
+            "0"
+        )
+
+        self.poster_card = self.create_card(
+            stats,
+            "🖼 Posters",
+            "0"
+        )
+
+        self.nfo_card = self.create_card(
+            stats,
+            "📄 NFO Files",
+            "0"
+        )
+
+        self.movie_card.grid(
+            row=0,
+            column=0,
+            padx=8,
+            pady=8,
+            sticky="ew"
+        )
+
+        self.category_card.grid(
+            row=0,
+            column=1,
+            padx=8,
+            pady=8,
+            sticky="ew"
+        )
+
+        self.poster_card.grid(
+            row=0,
+            column=2,
+            padx=8,
+            pady=8,
+            sticky="ew"
+        )
+
+        self.nfo_card.grid(
+            row=0,
+            column=3,
+            padx=8,
+            pady=8,
+            sticky="ew"
+        )
+
+    #################################################################
+    # ACTION BAR
+    #################################################################
+
+    def build_action_bar(self):
+
+        self.action_bar = ActionBar(
+            self.main,
+            scan_callback=self.scan_library,
+            refresh_callback=self.refresh_dashboard,
+            settings_callback=self.open_settings
+        )
+
+        self.action_bar.grid(
+            row=2,
+            column=0,
+            sticky="ew",
+            padx=10,
+            pady=(0,15)
+        )
+
+
+    def refresh_dashboard(self):
+
+        self.write_log("🔄 Dashboard refreshed")
+
+
+    def open_settings(self):
+
+        self.write_log("⚙ Settings clicked")
+            #################################################################
+    # COMMAND CENTER
+    #################################################################
+
+    def build_content(self):
+
+        content = ctk.CTkFrame(self.main)
+
+        content.grid(
+            row=3,
+            column=0,
+            sticky="nsew",
+            padx=10,
+            pady=5
+        )
+
+        content.grid_columnconfigure(0, weight=1)
+        content.grid_columnconfigure(1, weight=1)
+        content.grid_rowconfigure(0, weight=1)
+        content.grid_rowconfigure(1, weight=1)
+
+        #
+        # LEFT COLUMN
+        #
+
+        self.health = DragonHealth(content)
+
+        self.health.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+            padx=(0,8),
+            pady=(0,8)
+        )
+
+        self.downloads = DownloadsPanel(content)
+
+        self.downloads.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=(0,8),
+            pady=(8,0)
+        )
+
+        #
+        # RIGHT COLUMN
+        #
+
+        self.ai = DragonAIFrame(content)
+
+        self.ai.grid(
+            row=0,
+            column=1,
+            sticky="nsew",
+            padx=(8,0),
+            pady=(0,8)
+        )
+
+        self.activity = RecentActivity(content)
+
+        self.activity.grid(
+            row=1,
+            column=1,
+            sticky="nsew",
+            padx=(8,0),
+            pady=(8,0)
+        )
+
+    #################################################################
+    # DRAGON LOG
+    #################################################################
+
+    def build_log(self):
+
+        log_frame = ctk.CTkFrame(self.main)
+
+        log_frame.grid(
+            row=4,
+            column=0,
+            sticky="nsew",
+            padx=10,
+            pady=(10,5)
+        )
+
+        ctk.CTkLabel(
+            log_frame,
             text="📜 Dragon Log",
-            font=("Arial", 18, "bold")
+            font=("Arial",18,"bold")
+        ).pack(
+            anchor="w",
+            padx=10,
+            pady=(10,5)
         )
-        log_title.pack(anchor="w", padx=20)
 
         self.log = ctk.CTkTextbox(
-            main,
+            log_frame,
             height=180
         )
 
         self.log.pack(
             fill="both",
             expand=True,
+            padx=10,
+            pady=(0,10)
+        )
+
+        self.write_log("🐉 Dragon Command Center started")
+        self.write_log("Build 9.0.2 loaded")
+        self.write_log("Widgets initialized")
+            #################################################################
+    # STATUS BAR
+    #################################################################
+
+    def build_statusbar(self):
+
+        self.statusbar = StatusBar(self)
+
+        self.statusbar.grid(
+            row=1,
+            column=1,
+            sticky="ew",
             padx=20,
-            pady=(5, 20)
+            pady=(0,10)
         )
 
-        self.write_log("🐉 Dragon Media Manager started")
-        self.write_log("Dragon's Eye Build 6 loaded")
-        self.write_log("Dragon Health initialized")
-        self.write_log("Dragon AI initialized")
-        self.write_log("Dragon Command Center initialized")
-
-    def create_card(self, parent, title, value):
-
-        frame = ctk.CTkFrame(
-            parent,
-            width=220,
-            height=120
-        )
-
-        frame.grid_propagate(False)
-
-        label = ctk.CTkLabel(
-            frame,
-            text=title,
-            font=("Arial", 18, "bold")
-        )
-
-        label.pack(pady=(20, 5))
-
-        value_label = ctk.CTkLabel(
-            frame,
-            text=value,
-            font=("Arial", 32)
-        )
-
-        value_label.pack()
-
-        frame.value_label = value_label
-
-        return frame
+    #################################################################
+    # LOGGING
+    #################################################################
 
     def write_log(self, message):
 
         self.log.insert("end", message + "\n")
         self.log.see("end")
 
+        if hasattr(self, "activity"):
+            self.activity.add(message)
+
+    #################################################################
+    # LIBRARY SCANNER
+    #################################################################
+
     def scan_library(self):
 
-        self.write_log("🔍 Scanning library...")
+        self.write_log("🔍 Library Scan Started")
 
-        self.scan_button.configure(state="disabled")
+        self.action_bar.scan_button.configure(state="disabled")
 
         self.update()
 
         scanner = LibraryScanner("/media/treedragon/Movies1")
+
         stats = scanner.scan()
 
-        self.movie_card.value_label.configure(text=str(stats["movies"]))
-        self.category_card.value_label.configure(text=str(stats["categories"]))
-        self.poster_card.value_label.configure(text=str(stats["posters"]))
-        self.nfo_card.value_label.configure(text=str(stats["nfo"]))
+        self.movie_card.value_label.configure(
+            text=str(stats["movies"])
+        )
 
-        self.write_log("✅ Scan Complete")
-        self.write_log(f"🎬 Movies: {stats['movies']}")
-        self.write_log(f"📂 Categories: {stats['categories']}")
-        self.write_log(f"🖼 Posters: {stats['posters']}")
-        self.write_log(f"📄 NFO Files: {stats['nfo']}")
-        self.write_log(f"💬 Subtitles: {stats['subtitles']}")
+        self.category_card.value_label.configure(
+            text=str(stats["categories"])
+        )
 
-        self.scan_button.configure(state="normal")
+        self.poster_card.value_label.configure(
+            text=str(stats["posters"])
+        )
+
+        self.nfo_card.value_label.configure(
+            text=str(stats["nfo"])
+        )
+
+        self.statusbar.set_last_scan("Just Now")
+
+        self.write_log("✅ Library Scan Complete")
+
+        self.action_bar.scan_button.configure(state="normal")
+
+    #################################################################
+    # APPLICATION START
+    #################################################################
+
+if __name__ == "__main__":
+
+    app = Dashboard()
+
+    app.mainloop()

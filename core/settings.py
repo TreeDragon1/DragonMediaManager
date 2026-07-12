@@ -3,23 +3,37 @@ Dragon Media Manager
 Settings
 
 Version: v0.1.3-alpha
-Build 8.4
+Build 9.0
 
 Central configuration for Dragon Media Manager.
 """
 
 # ==========================================
+# Server
+# ==========================================
+
+SERVER_HOST = "127.0.0.1"
+SERVER_LAN = "192.168.1.126"
+
+# ==========================================
 # Media Services
 # ==========================================
 
-JELLYFIN_URL = "http://localhost:8096"
-RADARR_URL = "http://localhost:7878"
-SONARR_URL = "http://localhost:8989"
-PROWLARR_URL = "http://localhost:9696"
-BAZARR_URL = "http://localhost:6767"
-JELLYSEERR_URL = "http://localhost:5055"
-QBITTORRENT_URL = "http://localhost:8080"
-PORTAINER_URL = "https://localhost:9443"
+JELLYFIN_URL = f"http://{SERVER_HOST}:8096"
+RADARR_URL = f"http://{SERVER_HOST}:7878"
+SONARR_URL = f"http://{SERVER_HOST}:8989"
+PROWLARR_URL = f"http://{SERVER_HOST}:9696"
+BAZARR_URL = f"http://{SERVER_HOST}:6767"
+JELLYSEERR_URL = f"http://{SERVER_HOST}:5055"
+QBITTORRENT_URL = f"http://{SERVER_HOST}:8080"
+PORTAINER_URL = f"https://{SERVER_HOST}:9443"
+
+# ==========================================
+# qBittorrent Web API
+# ==========================================
+
+QBITTORRENT_USERNAME = "admin"
+QBITTORRENT_PASSWORD = ""
 
 # ==========================================
 # Library Paths
@@ -33,7 +47,7 @@ DOWNLOADS_PATH = "/media/treedragon/download"
 # Dashboard
 # ==========================================
 
-REFRESH_INTERVAL = 30  # seconds
+REFRESH_INTERVAL = 30
 WINDOW_WIDTH = 1400
 WINDOW_HEIGHT = 1000
 THEME = "dark"
