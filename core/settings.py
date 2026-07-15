@@ -1,53 +1,103 @@
 """
-Dragon Media Manager
+Dragon Media Centre
 Settings
 
-Version: v0.1.3-alpha
-Build 9.0
+Version: v1.2.0
+Build: 001
 
-Central configuration for Dragon Media Manager.
+Central Configuration
 """
 
-# ==========================================
-# Server
-# ==========================================
+# ==========================================================
+# SERVER CONFIGURATION
+# ==========================================================
 
-SERVER_HOST = "127.0.0.1"
-SERVER_LAN = "192.168.1.126"
+SERVER_IP = "192.168.1.126"
 
-# ==========================================
-# Media Services
-# ==========================================
+LOCALHOST = "127.0.0.1"
 
-JELLYFIN_URL = f"http://{SERVER_HOST}:8096"
-RADARR_URL = f"http://{SERVER_HOST}:7878"
-SONARR_URL = f"http://{SERVER_HOST}:8989"
-PROWLARR_URL = f"http://{SERVER_HOST}:9696"
-BAZARR_URL = f"http://{SERVER_HOST}:6767"
-JELLYSEERR_URL = f"http://{SERVER_HOST}:5055"
-QBITTORRENT_URL = f"http://{SERVER_HOST}:8080"
-PORTAINER_URL = f"https://{SERVER_HOST}:9443"
+USE_LAN = True
 
-# ==========================================
-# qBittorrent Web API
-# ==========================================
+HOST = SERVER_IP if USE_LAN else LOCALHOST
+
+# ==========================================================
+# PORTS
+# ==========================================================
+
+JELLYFIN_PORT = 8096
+RADARR_PORT = 7878
+SONARR_PORT = 8989
+PROWLARR_PORT = 9696
+BAZARR_PORT = 6767
+JELLYSEERR_PORT = 5055
+QBITTORRENT_PORT = 8080
+PORTAINER_PORT = 9443
+
+# ==========================================================
+# WEB URLS
+# ==========================================================
+
+JELLYFIN_URL = f"http://{HOST}:{JELLYFIN_PORT}"
+RADARR_URL = f"http://{HOST}:{RADARR_PORT}"
+SONARR_URL = f"http://{HOST}:{SONARR_PORT}"
+PROWLARR_URL = f"http://{HOST}:{PROWLARR_PORT}"
+BAZARR_URL = f"http://{HOST}:{BAZARR_PORT}"
+JELLYSEERR_URL = f"http://{HOST}:{JELLYSEERR_PORT}"
+QBITTORRENT_URL = f"http://{HOST}:{QBITTORRENT_PORT}"
+PORTAINER_URL = f"https://{HOST}:{PORTAINER_PORT}"
+
+# ==========================================================
+# LOGIN
+# ==========================================================
 
 QBITTORRENT_USERNAME = "admin"
 QBITTORRENT_PASSWORD = ""
 
-# ==========================================
-# Library Paths
-# ==========================================
+# ==========================================================
+# LIBRARY PATHS
+# ==========================================================
 
 MOVIES_PATH = "/media/treedragon/Movies1"
-TV_PATH = "/media/treedragon/TV Series"
-DOWNLOADS_PATH = "/media/treedragon/download"
+TV_PATH = "/media/treedragon/TV Series1"
+DOWNLOADS_PATH = "/media/treedragon/download1"
 
-# ==========================================
-# Dashboard
-# ==========================================
+# ==========================================================
+# DRAGON MEDIA CENTRE
+# ==========================================================
+
+BACKUP_SCRIPT = (
+    "/media/treedragon/Steam Gam/"
+    "Dragon Media Centre/Scripts/"
+    "dragon-backup.sh"
+)
+
+BACKUP_FOLDER = (
+    "/media/treedragon/Steam Gam/"
+    "Dragon Media Centre/Backups"
+)
+
+LOG_FOLDER = (
+    "/media/treedragon/Steam Gam/"
+    "Dragon Media Centre/Logs"
+)
+
+# ==========================================================
+# DASHBOARD
+# ==========================================================
 
 REFRESH_INTERVAL = 30
-WINDOW_WIDTH = 1400
-WINDOW_HEIGHT = 1000
+
+WINDOW_WIDTH = 1550
+WINDOW_HEIGHT = 980
+
 THEME = "dark"
+
+# ==========================================================
+# BUILD INFO
+# ==========================================================
+
+APP_NAME = "🐉 Dragon Media Centre"
+
+VERSION = "1.2.0"
+
+BUILD = "001"

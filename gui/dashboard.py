@@ -1,9 +1,7 @@
 """
-Dragon Media Manager
-Dragon Command Center
+Dragon Media Center
+text="Version 1.2 • Build 003"
 
-Build 9.0.2
-Sprint 1
 """
 
 import customtkinter as ctk
@@ -18,7 +16,7 @@ from gui.widgets.action_bar import ActionBar
 from gui.widgets.downloads_panel import DownloadsPanel
 from gui.widgets.recent_activity import RecentActivity
 from gui.widgets.status_bar import StatusBar
-
+from gui.widgets.quick_actions import QuickActionsPanel
 
 class Dashboard(ctk.CTk):
 
@@ -26,7 +24,7 @@ class Dashboard(ctk.CTk):
         super().__init__()
 
         self.title("🐉 Dragon Media Manager")
-        self.geometry("1550x980")
+        self.geometry("1700x980") 
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
@@ -83,7 +81,7 @@ class Dashboard(ctk.CTk):
 
         self.main.grid_columnconfigure(0, weight=1)
 
-        self.main.grid_rowconfigure(3, weight=1)
+        self.main.grid_rowconfigure(3, weight=3)
         self.main.grid_rowconfigure(4, weight=1)
 
     #################################################################
@@ -347,6 +345,18 @@ class Dashboard(ctk.CTk):
             pady=(8,0)
         )
 
+        content.grid_rowconfigure(2, weight=0)
+
+        self.quick_actions = QuickActionsPanel(content)
+
+        self.quick_actions.grid(
+            row=2,
+            column=0,
+            columnspan=2,
+            sticky="ew",
+            padx=8,
+            pady=(12,0)
+        )
     #################################################################
     # DRAGON LOG
     #################################################################
@@ -375,7 +385,7 @@ class Dashboard(ctk.CTk):
 
         self.log = ctk.CTkTextbox(
             log_frame,
-            height=180
+            height=120
         )
 
         self.log.pack(
@@ -385,10 +395,11 @@ class Dashboard(ctk.CTk):
             pady=(0,10)
         )
 
-        self.write_log("🐉 Dragon Command Center started")
-        self.write_log("Build 9.0.2 loaded")
+        self.write_log("🐉 Dragon Media Centre started")
+        self.write_log("Version 1.2 • Build 003")
         self.write_log("Widgets initialized")
-            #################################################################
+
+    #################################################################
     # STATUS BAR
     #################################################################
 
