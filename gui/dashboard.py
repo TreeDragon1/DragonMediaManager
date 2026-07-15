@@ -1,10 +1,11 @@
 """
-Dragon Media Center
-text="Version 1.2 • Build 003"
-
+Dragon Media Manager
+Version 1.2
+Build 003 - Professional Command Center
 """
 
 import customtkinter as ctk
+from datetime import datetime
 
 from core.scanner import LibraryScanner
 
@@ -14,25 +15,213 @@ from gui.dragon_ai import DragonAIFrame
 
 from gui.widgets.action_bar import ActionBar
 from gui.widgets.downloads_panel import DownloadsPanel
+from gui.widgets.quick_actions import QuickActionsPanel
 from gui.widgets.recent_activity import RecentActivity
 from gui.widgets.status_bar import StatusBar
-from gui.widgets.quick_actions import QuickActionsPanel
+
+# New widget
+
+
 
 class Dashboard(ctk.CTk):
+
+    #################################################################
+    # INITIALISE
+    #################################################################
 
     def __init__(self):
         super().__init__()
 
-        self.title("🐉 Dragon Media Manager")
-        self.geometry("1700x980") 
-
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
+        self.title("🐉 Dragon Media Manager")
+        self.geometry("1850x1040")
+        self.minsize(1600, 900)
+
+        self.configure(fg_color="#111418")
+
+        self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
+
         self.grid_rowconfigure(0, weight=1)
 
         self.build_ui()
+
+    #################################################################
+    # BUILD UI
+    #################################################################
+
+    def build_ui(self):
+
+        self.build_sidebar()
+        self.build_main()
+        self.build_header()
+        self.build_statistics()
+        self.build_action_bar()
+        self.build_content()
+        self.build_log()
+        self.build_statusbar()
+
+    #################################################################
+    # SIDEBAR
+    #################################################################
+
+    def build_sidebar(self):
+
+        self.sidebar = Sidebar(self)
+
+        self.sidebar.grid(
+            row=0,
+            column=0,
+            sticky="ns"
+        )
+
+    #################################################################
+    # MAIN FRAME
+    #################################################################
+
+    def build_main(self):
+
+        self.main = ctk.CTkFrame(
+            self,
+            fg_color="transparent"
+        )
+
+        self.main.grid(
+            row=0,
+            column=1,
+            sticky="nsew",
+            padx=20,
+            pady=20
+        )
+
+        self.main.grid_columnconfigure(0, weight=1)
+
+        self.main.grid_rowconfigure(3, weight=1)
+        self.main.grid_rowconfigure(4, weight=0)
+
+    #################################################################
+    # HEADER
+    #################################################################
+
+    def build_header(self):
+
+        header = ctk.CTkFrame(
+            self.main,
+            corner_radius=15,
+            fg_color="#1a1d22",
+            height=95
+        )
+
+        header.grid(
+            row=0,
+            column=0,
+            sticky="ew",
+            padx=10,
+            pady=(5, 15)
+        )
+
+        header.grid_columnconfigure(1, weight=1)
+
+        #
+        # Dragon Logo
+        #
+
+        logo = ctk.CTkLabel(
+            header,
+            text="🐉",
+            font=("Segoe UI Emoji", 42)
+        )
+
+        logo.grid(
+            row=0,
+            column=0,
+            rowspan=2,
+            padx=(20, 10),
+            pady=15
+        )
+
+        #
+        # Title
+        #
+
+        ctk.CTkLabel(
+            header,
+            text="Dragon Media Manager",
+            font=("Segoe UI", 28, "bold")
+        ).grid(
+            row=0,
+            column=1,
+            sticky="sw"
+        )
+
+        ctk.CTkLabel(
+            header,
+            text="Dragon Command Center",
+            font=("Segoe UI", 15),
+            text_color="#8f98a3"
+        ).grid(
+            row=1,
+            column=1,
+            sticky="nw"
+        )
+
+        #
+        # Right Side
+        #
+
+        right = ctk.CTkFrame(
+            header,
+            fg_color="transparent"
+        )
+
+        right.grid(
+            row=0,
+            column=2,
+            rowspan=2,
+            padx=20
+        )
+
+        self.clock_label = ctk.CTkLabel(
+            right,
+            text=datetime.now().strftime("%H:%M:%S"),
+            font=("Segoe UI", 16, "bold")
+        )
+
+        self.clock_label.pack(anchor="e")
+
+        self.status_label = ctk.CTkLabel(
+            right,
+            text="🟢 ONLINE",
+            font=("Segoe UI", 15, "bold"),
+            text_color="#4ade80"
+        )
+
+        self.status_label.pack(anchor="e", pady=(5, 0))
+
+        self.version_label = ctk.CTkLabel(
+            right,
+            text="Version 1.2 • Build 003",
+            font=("Segoe UI", 12),
+            text_color="#9aa3af"
+        )
+
+        self.version_label.pack(anchor="e")
+
+        self.update_clock()
+
+    #################################################################
+    # CLOCK
+    #################################################################
+
+    def update_clock(self):
+
+        self.clock_label.configure(
+            text=datetime.now().strftime("%H:%M:%S")
+        )
+
+        self.after(1000, self.update_clock)
 
     #################################################################
     # BUILD USER INTERFACE

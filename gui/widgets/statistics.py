@@ -1,61 +1,77 @@
-"""
-Dragon Media Manager
-Statistics Widget
+#################################################################
+# STATISTICS
+#################################################################
 
-Version: v0.1.3-alpha
-Build 9.1
-"""
+def build_statistics(self):
 
-import customtkinter as ctk
+    stats = ctk.CTkFrame(
+        self.main,
+        fg_color="transparent"
+    )
 
+    stats.grid(
+        row=1,
+        column=0,
+        sticky="ew",
+        padx=10,
+        pady=(0, 15)
+    )
 
-class StatisticCard(ctk.CTkFrame):
+    for i in range(5):
+        stats.grid_columnconfigure(i, weight=1)
 
-    def __init__(self, parent, title, value="0"):
-        super().__init__(parent, width=220, height=120)
+    self.movie_card = StatCard(
+        stats,
+        icon="🎬",
+        title="Movies",
+        value="0",
+        subtitle="Total Movies"
+    )
 
-        self.grid_propagate(False)
+    self.tv_card = StatCard(
+        stats,
+        icon="📺",
+        title="TV Shows",
+        value="0",
+        subtitle="Series"
+    )
 
-        title_label = ctk.CTkLabel(
-            self,
-            text=title,
-            font=("Arial", 18, "bold")
+    self.episode_card = StatCard(
+        stats,
+        icon="🎞",
+        title="Episodes",
+        value="0",
+        subtitle="Episodes"
+    )
+
+    self.download_card = StatCard(
+        stats,
+        icon="⬇",
+        title="Downloads",
+        value="0",
+        subtitle="Active"
+    )
+
+    self.backup_card = StatCard(
+        stats,
+        icon="💾",
+        title="Last Backup",
+        value="--",
+        subtitle="Status"
+    )
+
+    cards = [
+        self.movie_card,
+        self.tv_card,
+        self.episode_card,
+        self.download_card,
+        self.backup_card
+    ]
+
+    for column, card in enumerate(cards):
+        card.grid(
+            row=0,
+            column=column,
+            padx=8,
+            sticky="ew"
         )
-
-        title_label.pack(pady=(20, 5))
-
-        self.value_label = ctk.CTkLabel(
-            self,
-            text=value,
-            font=("Arial", 32)
-        )
-
-        self.value_label.pack()
-
-    def set_value(self, value):
-        self.value_label.configure(text=str(value))
-
-
-class StatisticsWidget(ctk.CTkFrame):
-
-    def __init__(self, parent):
-        super().__init__(parent)
-
-        self.grid_columnconfigure((0, 1, 2, 3), weight=1)
-
-        self.movies = StatisticCard(self, "🎬 Movies")
-        self.categories = StatisticCard(self, "📂 Categories")
-        self.posters = StatisticCard(self, "🖼 Posters")
-        self.nfo = StatisticCard(self, "📄 NFO Files")
-
-        self.movies.grid(row=0, column=0, padx=10, pady=10)
-        self.categories.grid(row=0, column=1, padx=10, pady=10)
-        self.posters.grid(row=0, column=2, padx=10, pady=10)
-        self.nfo.grid(row=0, column=3, padx=10, pady=10)
-
-    def update(self, stats):
-
-        self.movies.set_value(stats["movies"])
-        self.categories.set_value(stats["categories"])
-        self.posters.set_value(stats["posters"])
-        self.nfo.set_value(stats["nfo"])
