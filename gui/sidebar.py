@@ -7,6 +7,8 @@ Build 9.1
 Codename: Dragon Command Center
 """
 
+
+
 import customtkinter as ctk
 
 from core.version import (
@@ -20,7 +22,7 @@ from core.actions import DragonActions
 
 class Sidebar(ctk.CTkFrame):
 
-    WIDTH = 220
+    WIDTH = 190
 
     def __init__(self, master):
 
@@ -66,9 +68,7 @@ class Sidebar(ctk.CTkFrame):
 
         #
         # Navigation
-        #
-
-        self.section("Navigation")
+        #  
 
         self.dashboard_btn = self.button(
             "🏠 Dashboard",
@@ -90,17 +90,22 @@ class Sidebar(ctk.CTkFrame):
             self.open_settings
         )
 
-        self.highlight(
-            self.dashboard_btn
+        self.highlight(self.dashboard_btn)
+
+        ctk.CTkFrame(
+            self,
+            height=2,
+            fg_color="#34373d"
+        ).pack(
+            fill="x",
+            padx=18,
+            pady=(12, 12)
         )
 
+        
         #
         # Quick Launch
         #
-
-        self.section(
-            "🚀 Quick Launch"
-        )
 
         self.button(
             "🎬 Jellyfin",
@@ -140,7 +145,8 @@ class Sidebar(ctk.CTkFrame):
         self.button(
             "🐳 Portainer",
             self.actions.open_portainer
-        )        #
+        )        
+        #
         # Footer
         #
 
@@ -174,7 +180,7 @@ class Sidebar(ctk.CTkFrame):
         btn = ctk.CTkButton(
             self,
             text=text,
-            width=180,
+            width=160,
             height=36,
             command=command,
         )

@@ -223,110 +223,11 @@ class Dashboard(ctk.CTk):
 
         self.after(1000, self.update_clock)
 
-    #################################################################
-    # BUILD USER INTERFACE
-    #################################################################
-
-    def build_ui(self):
-
-        self.build_sidebar()
-        self.build_main()
-        self.build_header()
-        self.build_statistics()
-        self.build_action_bar()
-        self.build_content()
-        self.build_log()
-        self.build_statusbar()
-
-    #################################################################
-    # SIDEBAR
-    #################################################################
-
-    def build_sidebar(self):
-
-        self.sidebar = Sidebar(self)
-
-        self.sidebar.grid(
-            row=0,
-            column=0,
-            sticky="ns"
-        )
-
-    #################################################################
-    # MAIN FRAME
-    #################################################################
-
-    def build_main(self):
-
-        self.main = ctk.CTkFrame(self)
-
-        self.main.grid(
-            row=0,
-            column=1,
-            sticky="nsew",
-            padx=20,
-            pady=20
-        )
-
         self.main.grid_columnconfigure(0, weight=1)
 
         self.main.grid_rowconfigure(3, weight=3)
         self.main.grid_rowconfigure(4, weight=1)
 
-    #################################################################
-    # HEADER
-    #################################################################
-
-    def build_header(self):
-
-        header = ctk.CTkFrame(self.main)
-
-        header.grid(
-            row=0,
-            column=0,
-            sticky="ew",
-            padx=10,
-            pady=(10,15)
-        )
-
-        header.grid_columnconfigure(0, weight=1)
-
-        ctk.CTkLabel(
-            header,
-            text="🐉 Dragon Media Manager",
-            font=("Arial",30,"bold")
-        ).grid(
-            row=0,
-            column=0,
-            sticky="w",
-            padx=15,
-            pady=(12,2)
-        )
-
-        ctk.CTkLabel(
-            header,
-            text="Dragon Command Center",
-            font=("Arial",16)
-        ).grid(
-            row=1,
-            column=0,
-            sticky="w",
-            padx=15,
-            pady=(0,12)
-        )
-
-        self.header_status = ctk.CTkLabel(
-            header,
-            text="🟢 Online",
-            font=("Arial",16,"bold")
-        )
-
-        self.header_status.grid(
-            row=0,
-            column=1,
-            rowspan=2,
-            padx=20
-        )
             #################################################################
     # STATISTICS
     #################################################################
@@ -465,87 +366,112 @@ class Dashboard(ctk.CTk):
     def open_settings(self):
 
         self.write_log("⚙ Settings clicked")
-            #################################################################
+    #################################################################
     # COMMAND CENTER
     #################################################################
-
+    
     def build_content(self):
 
-        content = ctk.CTkFrame(self.main)
+     content = ctk.CTkFrame(
+        self.main,
+        fg_color="transparent"
+ )
 
-        content.grid(
-            row=3,
-            column=0,
-            sticky="nsew",
-            padx=10,
-            pady=5
-        )
+     content.grid(
+        row=3,
+        column=0,
+        sticky="nsew",
+        padx=10,
+        pady=(10, 10)
+    )
 
-        content.grid_columnconfigure(0, weight=1)
-        content.grid_columnconfigure(1, weight=1)
-        content.grid_rowconfigure(0, weight=1)
-        content.grid_rowconfigure(1, weight=1)
+    #
+    # Layout
+    #
 
-        #
-        # LEFT COLUMN
-        #
+     content.grid_columnconfigure(0, weight=1)
+     content.grid_columnconfigure(1, weight=1)
 
-        self.health = DragonHealth(content)
+    # Top row grows the most
+     content.grid_rowconfigure(0, weight=4)
 
-        self.health.grid(
-            row=0,
-            column=0,
-            sticky="nsew",
-            padx=(0,8),
-            pady=(0,8)
-        )
+    # Middle row
+     content.grid_rowconfigure(1, weight=2)
 
-        self.downloads = DownloadsPanel(content)
+    # Bottom row
+     content.grid_rowconfigure(2, weight=0)
 
-        self.downloads.grid(
-            row=1,
-            column=0,
-            sticky="nsew",
-            padx=(0,8),
-            pady=(8,0)
-        )
+    ###############################################################
+    # Dragon Health
+    ###############################################################
 
-        #
-        # RIGHT COLUMN
-        #
+     self.health = DragonHealth(content)
 
-        self.ai = DragonAIFrame(content)
+     self.health.grid(
+        row=0,
+        column=0,
+        sticky="nsew",
+        padx=(0, 10),
+        pady=(0, 12)
+    )
 
-        self.ai.grid(
-            row=0,
-            column=1,
-            sticky="nsew",
-            padx=(8,0),
-            pady=(0,8)
-        )
+    ###############################################################
+    # Dragon AI
+    ###############################################################
 
-        self.activity = RecentActivity(content)
+     self.ai = DragonAIFrame(content)
 
-        self.activity.grid(
-            row=1,
-            column=1,
-            sticky="nsew",
-            padx=(8,0),
-            pady=(8,0)
-        )
+     self.ai.grid(
+        row=0,
+        column=1,
+        sticky="nsew",
+        padx=(10, 0),
+        pady=(0, 12)
+    )
 
-        content.grid_rowconfigure(2, weight=0)
+    ###############################################################
+    # Downloads
+    ###############################################################
 
-        self.quick_actions = QuickActionsPanel(content)
+     self.downloads = DownloadsPanel(content)
 
-        self.quick_actions.grid(
-            row=2,
-            column=0,
-            columnspan=2,
-            sticky="ew",
-            padx=8,
-            pady=(12,0)
-        )
+     self.downloads.grid(
+        row=1,
+        column=0,
+        sticky="nsew",
+        padx=(0, 10),
+        pady=(0, 12)
+    )
+
+    ###############################################################
+    # Recent Activity
+    ###############################################################
+
+     self.activity = RecentActivity(content)
+
+     self.activity.grid(
+        row=1,
+        column=1,
+        sticky="nsew",
+        padx=(10, 0),
+        pady=(0, 12)
+    )
+
+    ###############################################################
+    # Quick Actions
+    ###############################################################
+
+     self.quick_actions = QuickActionsPanel(content)
+
+     self.quick_actions.grid(
+         row=2,
+        column=0,
+        columnspan=2,
+        sticky="ew",
+        pady=(12, 0)
+    )
+     
+        
     #################################################################
     # DRAGON LOG
     #################################################################
