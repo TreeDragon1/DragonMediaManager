@@ -98,7 +98,10 @@ class Dashboard(ctk.CTk):
 
         self.main.grid_columnconfigure(0, weight=1)
 
-        self.main.grid_rowconfigure(3, weight=1)
+        self.main.grid_rowconfigure(0, weight=0)
+        self.main.grid_rowconfigure(1, weight=0)
+        self.main.grid_rowconfigure(2, weight=0)
+        self.main.grid_rowconfigure(3, weight=1, minsize=520)
         self.main.grid_rowconfigure(4, weight=0)
 
     #################################################################
@@ -222,11 +225,6 @@ class Dashboard(ctk.CTk):
         )
 
         self.after(1000, self.update_clock)
-
-        self.main.grid_columnconfigure(0, weight=1)
-
-        self.main.grid_rowconfigure(3, weight=3)
-        self.main.grid_rowconfigure(4, weight=1)
 
     #################################################################
     # STATISTICS
@@ -461,109 +459,103 @@ class Dashboard(ctk.CTk):
     #################################################################
     # COMMAND CENTER
     #################################################################
-    
+
     def build_content(self):
 
-     content = ctk.CTkFrame(
-        self.main,
-        fg_color="transparent"
- )
+        content = ctk.CTkFrame(
+            self.main,
+            fg_color="transparent"
+        )
 
-     content.grid(
-        row=3,
-        column=0,
-        sticky="nsew",
-        padx=10,
-        pady=(10, 10)
-    )
+        content.grid(
+            row=3,
+            column=0,
+            sticky="nsew",
+            padx=10,
+            pady=(0, 10)
+        )
 
-    #
-    # Layout
-    #
+        content.grid_columnconfigure(0, weight=1, uniform="command")
+        content.grid_columnconfigure(1, weight=1, uniform="command")
+        content.grid_rowconfigure(0, weight=4, minsize=460)
+        content.grid_rowconfigure(1, weight=1, minsize=150)
 
-     content.grid_columnconfigure(0, weight=1)
-     content.grid_columnconfigure(1, weight=1)
+        ###############################################################
+        # Middle-left: Dragon Health (large)
+        ###############################################################
 
-    # Top row grows the most
-     content.grid_rowconfigure(0, weight=4)
+        self.health = DragonHealth(content)
 
-    # Middle row
-     content.grid_rowconfigure(1, weight=2)
+        self.health.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+            padx=(0, 10),
+            pady=(0, 10)
+        )
 
-    # Bottom row
-     content.grid_rowconfigure(2, weight=0)
+        ###############################################################
+        # Middle-right: Dragon AI + Quick Actions
+        ###############################################################
 
-    ###############################################################
-    # Dragon Health
-    ###############################################################
+        right = ctk.CTkFrame(
+            content,
+            fg_color="transparent"
+        )
 
-     self.health = DragonHealth(content)
+        right.grid(
+            row=0,
+            column=1,
+            sticky="nsew",
+            padx=(10, 0),
+            pady=(0, 10)
+        )
 
-     self.health.grid(
-        row=0,
-        column=0,
-        sticky="nsew",
-        padx=(0, 10),
-        pady=(0, 12)
-    )
+        right.grid_columnconfigure(0, weight=1)
+        right.grid_rowconfigure(0, weight=1, minsize=200)
+        right.grid_rowconfigure(1, weight=1, minsize=200)
 
-    ###############################################################
-    # Dragon AI
-    ###############################################################
+        self.ai = DragonAIFrame(right)
 
-     self.ai = DragonAIFrame(content)
+        self.ai.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+            pady=(0, 10)
+        )
 
-     self.ai.grid(
-        row=0,
-        column=1,
-        sticky="nsew",
-        padx=(10, 0),
-        pady=(0, 12)
-    )
+        self.quick_actions = QuickActionsPanel(right)
 
-    ###############################################################
-    # Downloads
-    ###############################################################
+        self.quick_actions.grid(
+            row=1,
+            column=0,
+            sticky="nsew"
+        )
 
-     self.downloads = DownloadsPanel(content)
+        ###############################################################
+        # Lower row: Downloads + Recent Activity
+        ###############################################################
 
-     self.downloads.grid(
-        row=1,
-        column=0,
-        sticky="nsew",
-        padx=(0, 10),
-        pady=(0, 12)
-    )
+        self.downloads = DownloadsPanel(content)
 
-    ###############################################################
-    # Recent Activity
-    ###############################################################
+        self.downloads.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=(0, 10),
+            pady=(0, 0)
+        )
 
-     self.activity = RecentActivity(content)
+        self.activity = RecentActivity(content)
 
-     self.activity.grid(
-        row=1,
-        column=1,
-        sticky="nsew",
-        padx=(10, 0),
-        pady=(0, 12)
-    )
+        self.activity.grid(
+            row=1,
+            column=1,
+            sticky="nsew",
+            padx=(10, 0),
+            pady=(0, 0)
+        )
 
-    ###############################################################
-    # Quick Actions
-    ###############################################################
-
-     self.quick_actions = QuickActionsPanel(content)
-
-     self.quick_actions.grid(
-         row=2,
-        column=0,
-        columnspan=2,
-        sticky="ew",
-        pady=(12, 0)
-    )
-     
-        
     #################################################################
     # DRAGON LOG
     #################################################################
@@ -575,9 +567,9 @@ class Dashboard(ctk.CTk):
         log_frame.grid(
             row=4,
             column=0,
-            sticky="nsew",
+            sticky="ew",
             padx=10,
-            pady=(10,5)
+            pady=(5, 5)
         )
 
         ctk.CTkLabel(
@@ -587,12 +579,12 @@ class Dashboard(ctk.CTk):
         ).pack(
             anchor="w",
             padx=10,
-            pady=(10,5)
+            pady=(8, 4)
         )
 
         self.log = ctk.CTkTextbox(
             log_frame,
-            height=120
+            height=90
         )
 
         self.log.pack(
