@@ -228,113 +228,205 @@ class Dashboard(ctk.CTk):
         self.main.grid_rowconfigure(3, weight=3)
         self.main.grid_rowconfigure(4, weight=1)
 
-            #################################################################
+    #################################################################
     # STATISTICS
     #################################################################
 
-    def create_card(self, parent, title, value):
+    def create_card(
+        self,
+        parent,
+        icon,
+        title,
+        value,
+        subtitle,
+        accent
+    ):
 
-        frame = ctk.CTkFrame(parent)
+        frame = ctk.CTkFrame(
+            parent,
+            corner_radius=15,
+            fg_color="#1a1d22",
+            border_width=1,
+            border_color="#2a3038"
+        )
 
         frame.grid_columnconfigure(0, weight=1)
 
-        ctk.CTkLabel(
+        accent_bar = ctk.CTkFrame(
             frame,
-            text=title,
-            font=("Arial", 16, "bold")
+            height=4,
+            corner_radius=0,
+            fg_color=accent
+        )
+
+        accent_bar.grid(
+            row=0,
+            column=0,
+            sticky="ew"
+        )
+
+        content = ctk.CTkFrame(
+            frame,
+            fg_color="transparent"
+        )
+
+        content.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=16,
+            pady=(12, 14)
+        )
+
+        content.grid_columnconfigure(0, weight=1)
+
+        top = ctk.CTkFrame(
+            content,
+            fg_color="transparent"
+        )
+
+        top.grid(
+            row=0,
+            column=0,
+            sticky="ew"
+        )
+
+        top.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(
+            top,
+            text=icon,
+            font=("Segoe UI Emoji", 22),
+            text_color=accent
         ).grid(
             row=0,
             column=0,
-            pady=(12,4)
+            sticky="w"
+        )
+
+        ctk.CTkLabel(
+            top,
+            text=title,
+            font=("Segoe UI", 14, "bold"),
+            text_color="#c5ccd6"
+        ).grid(
+            row=0,
+            column=1,
+            sticky="w",
+            padx=(10, 0)
         )
 
         value_label = ctk.CTkLabel(
-            frame,
+            content,
             text=value,
-            font=("Arial",30)
+            font=("Segoe UI", 32, "bold"),
+            text_color=accent
         )
 
         value_label.grid(
             row=1,
             column=0,
-            pady=(0,12)
+            sticky="w",
+            pady=(10, 2)
+        )
+
+        subtitle_label = ctk.CTkLabel(
+            content,
+            text=subtitle,
+            font=("Segoe UI", 12),
+            text_color="#8f98a3"
+        )
+
+        subtitle_label.grid(
+            row=2,
+            column=0,
+            sticky="w"
         )
 
         frame.value_label = value_label
+        frame.subtitle_label = subtitle_label
 
         return frame
 
-
     def build_statistics(self):
 
-        stats = ctk.CTkFrame(self.main)
+        stats = ctk.CTkFrame(
+            self.main,
+            fg_color="transparent"
+        )
 
         stats.grid(
             row=1,
             column=0,
             sticky="ew",
             padx=10,
-            pady=(0,15)
+            pady=(0, 15)
         )
 
-        for i in range(4):
-            stats.grid_columnconfigure(i, weight=1)
+        for i in range(5):
+            stats.grid_columnconfigure(i, weight=1, uniform="stats")
 
         self.movie_card = self.create_card(
             stats,
-            "🎬 Movies",
-            "0"
+            icon="🎬",
+            title="Movies",
+            value="0",
+            subtitle="Total Movies",
+            accent="#3b82f6"
         )
 
-        self.category_card = self.create_card(
+        self.tv_card = self.create_card(
             stats,
-            "📂 Categories",
-            "0"
+            icon="📺",
+            title="TV Shows",
+            value="0",
+            subtitle="Series",
+            accent="#a855f7"
         )
 
-        self.poster_card = self.create_card(
+        self.episode_card = self.create_card(
             stats,
-            "🖼 Posters",
-            "0"
+            icon="🎞",
+            title="Episodes",
+            value="0",
+            subtitle="Episodes",
+            accent="#f59e0b"
         )
 
-        self.nfo_card = self.create_card(
+        self.download_card = self.create_card(
             stats,
-            "📄 NFO Files",
-            "0"
+            icon="⬇",
+            title="Downloads",
+            value="0",
+            subtitle="Active",
+            accent="#22c55e"
         )
 
-        self.movie_card.grid(
-            row=0,
-            column=0,
-            padx=8,
-            pady=8,
-            sticky="ew"
+        self.backup_card = self.create_card(
+            stats,
+            icon="💾",
+            title="Last Backup",
+            value="--",
+            subtitle="Status",
+            accent="#14b8a6"
         )
 
-        self.category_card.grid(
-            row=0,
-            column=1,
-            padx=8,
-            pady=8,
-            sticky="ew"
-        )
+        cards = [
+            self.movie_card,
+            self.tv_card,
+            self.episode_card,
+            self.download_card,
+            self.backup_card
+        ]
 
-        self.poster_card.grid(
-            row=0,
-            column=2,
-            padx=8,
-            pady=8,
-            sticky="ew"
-        )
-
-        self.nfo_card.grid(
-            row=0,
-            column=3,
-            padx=8,
-            pady=8,
-            sticky="ew"
-        )
+        for column, card in enumerate(cards):
+            card.grid(
+                row=0,
+                column=column,
+                padx=8,
+                pady=8,
+                sticky="ew"
+            )
 
     #################################################################
     # ACTION BAR
@@ -562,16 +654,8 @@ class Dashboard(ctk.CTk):
             text=str(stats["movies"])
         )
 
-        self.category_card.value_label.configure(
-            text=str(stats["categories"])
-        )
-
-        self.poster_card.value_label.configure(
-            text=str(stats["posters"])
-        )
-
-        self.nfo_card.value_label.configure(
-            text=str(stats["nfo"])
+        self.episode_card.value_label.configure(
+            text=str(stats.get("tv", 0))
         )
 
         self.statusbar.set_last_scan("Just Now")
