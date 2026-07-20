@@ -8,6 +8,9 @@ import customtkinter as ctk
 from datetime import datetime
 
 from core.scanner import LibraryScanner
+from core.settings import MOVIES_PATH, TV_PATH
+from core.dragon_downloads import DragonDownloads
+from core.actions import DragonActions
 
 from gui.sidebar import Sidebar
 from gui.dragon_health import DragonHealth
@@ -436,6 +439,7 @@ class Dashboard(ctk.CTk):
             self.main,
             scan_callback=self.scan_library,
             refresh_callback=self.refresh_dashboard,
+            backup_callback=self.backup_now,
             settings_callback=self.open_settings
         )
 
@@ -451,11 +455,127 @@ class Dashboard(ctk.CTk):
     def refresh_dashboard(self):
 
         self.write_log("🔄 Dashboard refreshed")
+        self.refresh_statistics()
 
+    def backup_now(self):
+
+        self.write_log("💾 Backup started")
+
+        try:
+            self.action_bar.backup_button.configure(state="disabled")
+        except Exception:
+            pass
+
+        self.update()
+
+        try:
+            success, message = DragonActions().backup_now()
+
+            if success:
+                self.write_log(f"✅ Backup complete: {message}")
+
+                try:
+                    self.set_card_value(
+                        self.backup_card,
+                        DragonActions.get_last_backup_label(),
+                    )
+                except Exception:
+                    self.set_card_value(self.backup_card, "N/A")
+            else:
+                self.write_log(
+                    f"❌ Backup failed: {message or 'Unknown error'}"
+                )
+
+        except Exception as error:
+            self.write_log(f"❌ Backup failed: {error}")
+
+        finally:
+            try:
+                self.action_bar.backup_button.configure(state="normal")
+            except Exception:
+                pass
 
     def open_settings(self):
 
         self.write_log("⚙ Settings clicked")
+
+    def set_card_value(self, card, value):
+
+        try:
+            if hasattr(card, "value_label"):
+                card.value_label.configure(text=str(value))
+        except Exception:
+            pass
+
+    def refresh_statistics(self):
+        """
+        Update the five statistics cards from real application data.
+        """
+
+        #
+        # Library counts
+        #
+
+        try:
+            stats = LibraryScanner.scan_libraries(
+                MOVIES_PATH,
+                TV_PATH,
+            )
+
+            self.set_card_value(
+                self.movie_card,
+                stats.get("movies", 0),
+            )
+            self.set_card_value(
+                self.tv_card,
+                stats.get("tv_shows", 0),
+            )
+            self.set_card_value(
+                self.episode_card,
+                stats.get("episodes", 0),
+            )
+
+        except Exception as error:
+            self.set_card_value(self.movie_card, 0)
+            self.set_card_value(self.tv_card, 0)
+            self.set_card_value(self.episode_card, 0)
+            self.write_log(f"⚠ Library stats unavailable: {error}")
+
+        #
+        # Active downloads
+        #
+
+        try:
+            data = DragonDownloads().get_downloads()
+
+            if data.get("connected"):
+                active = int(data.get("active", 0) or 0)
+                self.set_card_value(self.download_card, active)
+
+                if hasattr(self, "statusbar"):
+                    self.statusbar.set_downloads(active)
+            else:
+                self.set_card_value(self.download_card, 0)
+
+                if hasattr(self, "statusbar"):
+                    self.statusbar.set_downloads(0)
+
+        except Exception:
+            self.set_card_value(self.download_card, 0)
+
+        #
+        # Last backup
+        #
+
+        try:
+            backup_label = DragonActions.get_last_backup_label()
+            self.set_card_value(
+                self.backup_card,
+                backup_label if backup_label else "N/A",
+            )
+        except Exception:
+            self.set_card_value(self.backup_card, "N/A")
+
     #################################################################
     # COMMAND CENTER
     #################################################################
@@ -663,17 +783,52 @@ class Dashboard(ctk.CTk):
 
         self.update()
 
-        scanner = LibraryScanner("/media/treedragon/Movies1")
+        try:
+            stats = LibraryScanner.scan_libraries(
+                MOVIES_PATH,
+                TV_PATH,
+            )
 
-        stats = scanner.scan()
+            self.set_card_value(
+                self.movie_card,
+                stats.get("movies", 0),
+            )
+            self.set_card_value(
+                self.tv_card,
+                stats.get("tv_shows", 0),
+            )
+            self.set_card_value(
+                self.episode_card,
+                stats.get("episodes", 0),
+            )
 
-        self.movie_card.value_label.configure(
-            text=str(stats["movies"])
-        )
+        except Exception as error:
+            self.set_card_value(self.movie_card, 0)
+            self.set_card_value(self.tv_card, 0)
+            self.set_card_value(self.episode_card, 0)
+            self.write_log(f"⚠ Library scan failed: {error}")
 
-        self.episode_card.value_label.configure(
-            text=str(stats.get("tv", 0))
-        )
+        try:
+            data = DragonDownloads().get_downloads()
+
+            if data.get("connected"):
+                active = int(data.get("active", 0) or 0)
+                self.set_card_value(self.download_card, active)
+
+                if hasattr(self, "statusbar"):
+                    self.statusbar.set_downloads(active)
+            else:
+                self.set_card_value(self.download_card, 0)
+        except Exception:
+            self.set_card_value(self.download_card, 0)
+
+        try:
+            self.set_card_value(
+                self.backup_card,
+                DragonActions.get_last_backup_label(),
+            )
+        except Exception:
+            self.set_card_value(self.backup_card, "N/A")
 
         self.statusbar.set_last_scan("Just Now")
 

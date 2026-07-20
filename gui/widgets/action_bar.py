@@ -18,11 +18,12 @@ class ActionBar(ctk.CTkFrame):
         master,
         scan_callback=None,
         refresh_callback=None,
+        backup_callback=None,
         settings_callback=None,
     ):
         super().__init__(master)
 
-        self.grid_columnconfigure((0, 1, 2), weight=1)
+        self.grid_columnconfigure((0, 1, 2, 3), weight=1)
 
         title = ctk.CTkLabel(
             self,
@@ -32,7 +33,7 @@ class ActionBar(ctk.CTkFrame):
         title.grid(
             row=0,
             column=0,
-            columnspan=3,
+            columnspan=4,
             sticky="w",
             padx=15,
             pady=(10, 5),
@@ -50,6 +51,13 @@ class ActionBar(ctk.CTkFrame):
             text="🔄 Refresh",
             height=40,
             command=refresh_callback,
+        )
+
+        self.backup_button = ctk.CTkButton(
+            self,
+            text="💾 Backup Now",
+            height=40,
+            command=backup_callback,
         )
 
         self.settings_button = ctk.CTkButton(
@@ -75,9 +83,17 @@ class ActionBar(ctk.CTkFrame):
             sticky="ew",
         )
 
-        self.settings_button.grid(
+        self.backup_button.grid(
             row=1,
             column=2,
+            padx=10,
+            pady=10,
+            sticky="ew",
+        )
+
+        self.settings_button.grid(
+            row=1,
+            column=3,
             padx=10,
             pady=10,
             sticky="ew",

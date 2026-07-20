@@ -7,7 +7,9 @@ Build: 002
 """
 
 import subprocess
+import time
 import webbrowser
+from pathlib import Path
 
 from core.settings import (
     JELLYFIN_URL,
@@ -19,6 +21,7 @@ from core.settings import (
     QBITTORRENT_URL,
     PORTAINER_URL,
     BACKUP_SCRIPT,
+    BACKUP_FOLDER,
 )
 
 
@@ -79,6 +82,55 @@ class DragonActions:
 
     def backup_now(self):
         return self._run(f'"{BACKUP_SCRIPT}"')
+
+    @staticmethod
+    def get_last_backup_label():
+        """
+        Return a relative time label for the newest backup file,
+        or "N/A" when no backup data is available.
+        """
+
+        try:
+            folder = Path(BACKUP_FOLDER)
+
+            if not folder.exists() or not folder.is_dir():
+                return "N/A"
+
+            backups = [
+                path
+                for path in folder.iterdir()
+                if path.is_file()
+            ]
+
+            if not backups:
+                return "N/A"
+
+            latest = max(
+                backups,
+                key=lambda path: path.stat().st_mtime
+            )
+
+            age_seconds = max(
+                0,
+                int(time.time() - latest.stat().st_mtime)
+            )
+
+            if age_seconds < 60:
+                return "Just now"
+
+            if age_seconds < 3600:
+                minutes = age_seconds // 60
+                return f"{minutes}m ago"
+
+            if age_seconds < 86400:
+                hours = age_seconds // 3600
+                return f"{hours}h ago"
+
+            days = age_seconds // 86400
+            return f"{days}d ago"
+
+        except Exception:
+            return "N/A"
 
     # =====================================================
     # Docker Restarts

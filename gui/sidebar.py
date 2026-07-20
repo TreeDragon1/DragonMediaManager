@@ -73,7 +73,7 @@ class Sidebar(ctk.CTkFrame):
             justify="center",
             font=("Arial", 18, "bold")
         ).pack(
-            pady=(0, 8)
+            pady=(0, 6)
         )
 
     def _build_footer(self):
@@ -114,32 +114,15 @@ class Sidebar(ctk.CTkFrame):
 
         self.scroll.grid_columnconfigure(0, weight=1)
 
-        self._build_navigation()
+        self._build_dashboard()
         self._build_quick_launch()
         self._build_system_actions()
 
-    def _build_navigation(self):
-
-        self.section("Navigation")
+    def _build_dashboard(self):
 
         self.dashboard_btn = self.button(
             "🏠 Dashboard",
             self.open_dashboard
-        )
-
-        self.movies_btn = self.button(
-            "🎬 Movies",
-            self.open_movies
-        )
-
-        self.tv_btn = self.button(
-            "📺 TV Shows",
-            self.open_tv
-        )
-
-        self.settings_btn = self.button(
-            "⚙ Settings",
-            self.open_settings
         )
 
         self.highlight(self.dashboard_btn)
@@ -151,7 +134,7 @@ class Sidebar(ctk.CTkFrame):
         ).pack(
             fill="x",
             padx=14,
-            pady=(10, 6)
+            pady=(8, 4)
         )
 
     def _build_quick_launch(self):
@@ -205,7 +188,7 @@ class Sidebar(ctk.CTkFrame):
         ).pack(
             fill="x",
             padx=14,
-            pady=(10, 6)
+            pady=(8, 4)
         )
 
     def _build_system_actions(self):
@@ -221,7 +204,7 @@ class Sidebar(ctk.CTkFrame):
         self.action_status.pack(
             anchor="w",
             padx=16,
-            pady=(0, 6),
+            pady=(0, 4),
         )
 
         system_actions = [
@@ -254,7 +237,7 @@ class Sidebar(ctk.CTkFrame):
         ).pack(
             anchor="w",
             padx=16,
-            pady=(8, 4)
+            pady=(6, 3)
         )
 
     def button(self, text, command=None):
@@ -263,7 +246,7 @@ class Sidebar(ctk.CTkFrame):
             self.scroll,
             text=text,
             width=160,
-            height=32,
+            height=30,
             font=("Segoe UI", 12),
             command=command,
         )
@@ -297,26 +280,17 @@ class Sidebar(ctk.CTkFrame):
 
     def highlight(self, active):
 
-        buttons = [
-            getattr(self, "dashboard_btn", None),
-            getattr(self, "movies_btn", None),
-            getattr(self, "tv_btn", None),
-            getattr(self, "settings_btn", None),
-        ]
+        if not hasattr(self, "dashboard_btn"):
+            return
 
-        for btn in buttons:
-
-            if btn is None:
-                continue
-
-            if btn == active:
-                btn.configure(
-                    fg_color=("#1f6aa5", "#1f6aa5")
-                )
-            else:
-                btn.configure(
-                    fg_color=("gray25", "gray25")
-                )
+        if active == self.dashboard_btn:
+            self.dashboard_btn.configure(
+                fg_color=("#1f6aa5", "#1f6aa5")
+            )
+        else:
+            self.dashboard_btn.configure(
+                fg_color=("gray25", "gray25")
+            )
 
     def update_status(self, success, message):
 
@@ -382,7 +356,7 @@ class Sidebar(ctk.CTkFrame):
             self.master.write_log("🚧 Scan Jellyfin: Coming Soon")
 
     # --------------------------------------------------
-    # Navigation
+    # Dashboard
     # --------------------------------------------------
 
     def open_dashboard(self):
@@ -392,31 +366,4 @@ class Sidebar(ctk.CTkFrame):
         if hasattr(self.master, "write_log"):
             self.master.write_log(
                 "🏠 Dashboard selected"
-            )
-
-    def open_movies(self):
-
-        self.highlight(self.movies_btn)
-
-        if hasattr(self.master, "write_log"):
-            self.master.write_log(
-                "🎬 Movies selected"
-            )
-
-    def open_tv(self):
-
-        self.highlight(self.tv_btn)
-
-        if hasattr(self.master, "write_log"):
-            self.master.write_log(
-                "📺 TV Shows selected"
-            )
-
-    def open_settings(self):
-
-        self.highlight(self.settings_btn)
-
-        if hasattr(self.master, "write_log"):
-            self.master.write_log(
-                "⚙ Settings selected"
             )

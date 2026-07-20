@@ -37,9 +37,17 @@ SUBTITLE_EXTENSIONS = {
 TV_FOLDERS = {
     "tv",
     "tv shows",
+    "tv series",
     "television",
     "series",
     "shows",
+}
+
+IGNORE_FOLDERS = {
+    ".Trash-1000",
+    "System Volume Information",
+    "$RECYCLE.BIN",
+    "lost+found",
 }
 
 
@@ -73,18 +81,6 @@ class LibraryScanner:
 
         }
 
-        ignore = {
-
-            ".Trash-1000",
-
-            "System Volume Information",
-
-            "$RECYCLE.BIN",
-
-            "lost+found",
-
-        }
-
         if not self.root.exists():
             return stats
 
@@ -97,7 +93,7 @@ class LibraryScanner:
             if not folder.is_dir():
                 continue
 
-            if folder.name in ignore:
+            if folder.name in IGNORE_FOLDERS:
                 continue
 
             stats["categories"] += 1
@@ -175,3 +171,79 @@ class LibraryScanner:
         )
 
         return stats
+
+    @staticmethod
+    def scan_tv_library(tv_path):
+        """
+        Return real TV series and episode counts for a TV library root.
+        """
+
+        root = Path(tv_path)
+
+        result = {
+            "tv_shows": 0,
+            "episodes": 0,
+        }
+
+        if not root.exists() or not root.is_dir():
+            return result
+
+        try:
+            children = [
+                path
+                for path in root.iterdir()
+                if path.is_dir() and path.name not in IGNORE_FOLDERS
+            ]
+        except Exception:
+            return result
+
+        shows_root = root
+
+        for child in children:
+            if child.name.lower() in TV_FOLDERS:
+                shows_root = child
+                break
+
+        try:
+            show_folders = [
+                path
+                for path in shows_root.iterdir()
+                if path.is_dir() and path.name not in IGNORE_FOLDERS
+            ]
+            result["tv_shows"] = len(show_folders)
+        except Exception:
+            result["tv_shows"] = 0
+
+        try:
+            for file in root.rglob("*"):
+                try:
+                    if (
+                        file.is_file()
+                        and file.suffix.lower() in VIDEO_EXTENSIONS
+                    ):
+                        result["episodes"] += 1
+                except Exception:
+                    continue
+        except Exception:
+            result["episodes"] = 0
+
+        return result
+
+    @classmethod
+    def scan_libraries(cls, movies_path, tv_path):
+        """
+        Scan movie and TV libraries and return dashboard statistics.
+        """
+
+        movie_stats = cls(movies_path).scan()
+        tv_stats = cls.scan_tv_library(tv_path)
+
+        return {
+            "movies": movie_stats.get("movies", 0),
+            "tv_shows": tv_stats.get("tv_shows", 0),
+            "episodes": tv_stats.get("episodes", 0),
+            "categories": movie_stats.get("categories", 0),
+            "posters": movie_stats.get("posters", 0),
+            "nfo": movie_stats.get("nfo", 0),
+            "size_gb": movie_stats.get("size_gb", 0.0),
+        }

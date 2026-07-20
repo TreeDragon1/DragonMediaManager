@@ -92,8 +92,19 @@ class DragonDownloads:
             torrents = response.json()
 
             downloads = []
+            active_states = {
+                "downloading",
+                "metaDL",
+                "forcedDL",
+                "stalledDL",
+                "queuedDL",
+                "allocating",
+                "checkingDL",
+            }
 
             for torrent in torrents:
+
+                state = torrent.get("state")
 
                 downloads.append(
                     {
@@ -102,7 +113,7 @@ class DragonDownloads:
                             torrent.get("progress", 0) * 100,
                             1,
                         ),
-                        "state": torrent.get("state"),
+                        "state": state,
                         "speed": torrent.get("dlspeed"),
                         "upload_speed": torrent.get("upspeed"),
                         "eta": torrent.get("eta"),
@@ -110,12 +121,18 @@ class DragonDownloads:
                     }
                 )
 
+            active = [
+                item
+                for item in downloads
+                if item.get("state") in active_states
+            ]
+
             self.logout()
 
             return {
                 "connected": True,
-                "active": len(downloads),
-                "downloads": downloads,
+                "active": len(active),
+                "downloads": active,
             }
 
         except Exception as e:
