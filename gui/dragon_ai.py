@@ -7,7 +7,9 @@ Build 6
 """
 
 import customtkinter as ctk
+
 from core.dragon_ai import DragonAI
+from gui.branding import load_dragon_image
 
 
 class DragonAIFrame(ctk.CTkFrame):
@@ -17,13 +19,25 @@ class DragonAIFrame(ctk.CTkFrame):
 
         self.configure(corner_radius=12)
 
-        title = ctk.CTkLabel(
-            self,
-            text="🤖 Dragon AI",
-            font=("Arial", 22, "bold")
-        )
+        title_row = ctk.CTkFrame(self, fg_color="transparent")
+        title_row.pack(anchor="w", fill="x", padx=20, pady=(15, 10))
 
-        title.pack(anchor="w", padx=20, pady=(15, 10))
+        dragon_logo = load_dragon_image(28)
+
+        if dragon_logo is not None:
+            logo = ctk.CTkLabel(
+                title_row,
+                text="",
+                image=dragon_logo,
+            )
+            self._ai_dragon_image = dragon_logo
+            logo.pack(side="left", padx=(0, 8))
+
+        ctk.CTkLabel(
+            title_row,
+            text="Dragon AI",
+            font=("Arial", 22, "bold")
+        ).pack(side="left")
 
         dragon = DragonAI()
         message = dragon.get_message()

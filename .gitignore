@@ -6,6 +6,10 @@ __pycache__/
 .venv/
 venv/
 
+# Local secrets (never commit)
+config/qbittorrent.env
+.env
+
 # VS Code
 .vscode/
 

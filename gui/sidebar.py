@@ -16,6 +16,7 @@ from core.version import (
 )
 
 from core.actions import DragonActions
+from gui.branding import load_dragon_image
 
 
 class Sidebar(ctk.CTkFrame):
@@ -55,11 +56,23 @@ class Sidebar(ctk.CTkFrame):
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.grid(row=0, column=0, sticky="ew")
 
-        ctk.CTkLabel(
-            header,
-            text="🐉",
-            font=("Arial", 42)
-        ).pack(
+        dragon_logo = load_dragon_image(56)
+
+        if dragon_logo is not None:
+            logo = ctk.CTkLabel(
+                header,
+                text="",
+                image=dragon_logo,
+            )
+            self._sidebar_dragon_image = dragon_logo
+        else:
+            logo = ctk.CTkLabel(
+                header,
+                text="🐉",
+                font=("Arial", 42)
+            )
+
+        logo.pack(
             pady=(14, 0)
         )
 

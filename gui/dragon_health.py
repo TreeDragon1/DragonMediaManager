@@ -15,6 +15,7 @@ import customtkinter as ctk
 import psutil
 
 from core.dragon_health import DragonHealthCore
+from gui.branding import load_dragon_image
 
 
 class DragonHealth(ctk.CTkFrame):
@@ -53,9 +54,20 @@ class DragonHealth(ctk.CTkFrame):
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(fill="x", padx=18, pady=(14, 6))
 
+        dragon_logo = load_dragon_image(28)
+
+        if dragon_logo is not None:
+            logo = ctk.CTkLabel(
+                header,
+                text="",
+                image=dragon_logo,
+            )
+            self._health_dragon_image = dragon_logo
+            logo.pack(side="left", padx=(0, 8))
+
         ctk.CTkLabel(
             header,
-            text="🐉  Dragon Health",
+            text="Dragon Health",
             font=("Segoe UI", 20, "bold"),
             text_color=self.TEXT,
         ).pack(side="left")

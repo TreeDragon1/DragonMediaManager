@@ -5,6 +5,7 @@ Build 003 - Professional Command Center
 """
 
 import customtkinter as ctk
+import threading
 from datetime import datetime
 
 from core.scanner import LibraryScanner
@@ -15,17 +16,17 @@ from core.actions import DragonActions
 from gui.sidebar import Sidebar
 from gui.dragon_health import DragonHealth
 from gui.dragon_ai import DragonAIFrame
+from gui.branding import load_dragon_image
 
 from gui.widgets.action_bar import ActionBar
-from gui.widgets.downloads_panel import DownloadsPanel
-from gui.widgets.recent_activity import RecentActivity
 from gui.widgets.status_bar import StatusBar
-
-# New widget
-
+from gui.widgets.downloads_details import DownloadsDetailsWindow
 
 
 class Dashboard(ctk.CTk):
+
+    DOWNLOAD_REFRESH_MS = 5000
+    DOWNLOAD_AUTH_BACKOFF_MS = 300000
 
     #################################################################
     # INITIALISE
@@ -37,11 +38,17 @@ class Dashboard(ctk.CTk):
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
-        self.title("🐉 Dragon Media Manager")
+        self.title("Dragon Media Manager")
         self.geometry("1850x1040")
         self.minsize(1600, 900)
 
         self.configure(fg_color="#111418")
+
+        self.downloads_engine = DragonDownloads()
+        self._download_refresh_after_id = None
+        self._download_refresh_in_progress = False
+        self._download_refresh_delay_ms = self.DOWNLOAD_REFRESH_MS
+        self._downloads_details_window = None
 
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
@@ -63,8 +70,8 @@ class Dashboard(ctk.CTk):
         self.build_statistics()
         self.build_action_bar()
         self.build_content()
-        self.build_lower()
         self.build_statusbar()
+        self.start_download_refresh()
 
     #################################################################
     # SIDEBAR
@@ -105,7 +112,6 @@ class Dashboard(ctk.CTk):
         self.main.grid_rowconfigure(1, weight=0)
         self.main.grid_rowconfigure(2, weight=0)
         self.main.grid_rowconfigure(3, weight=1, minsize=420)
-        self.main.grid_rowconfigure(4, weight=0)
 
     #################################################################
     # HEADER
@@ -134,11 +140,21 @@ class Dashboard(ctk.CTk):
         # Dragon Logo
         #
 
-        logo = ctk.CTkLabel(
-            header,
-            text="🐉",
-            font=("Segoe UI Emoji", 42)
-        )
+        dragon_logo = load_dragon_image(48)
+
+        if dragon_logo is not None:
+            logo = ctk.CTkLabel(
+                header,
+                text="",
+                image=dragon_logo,
+            )
+            self._header_dragon_image = dragon_logo
+        else:
+            logo = ctk.CTkLabel(
+                header,
+                text="🐉",
+                font=("Segoe UI Emoji", 42)
+            )
 
         logo.grid(
             row=0,
@@ -402,6 +418,7 @@ class Dashboard(ctk.CTk):
             subtitle="Active",
             accent="#22c55e"
         )
+        self._make_downloads_card_clickable(self.download_card)
 
         self.backup_card = self.create_card(
             stats,
@@ -429,6 +446,46 @@ class Dashboard(ctk.CTk):
                 sticky="ew"
             )
 
+    def _make_downloads_card_clickable(self, card):
+
+        def on_click(_event=None):
+            self.open_downloads_details()
+
+        widgets = []
+
+        def collect(widget):
+            widgets.append(widget)
+            for child in widget.winfo_children():
+                collect(child)
+
+        collect(card)
+
+        for widget in widgets:
+            try:
+                widget.configure(cursor="hand2")
+            except Exception:
+                pass
+
+            widget.bind("<Button-1>", on_click)
+
+    def open_downloads_details(self):
+
+        existing = self._downloads_details_window
+
+        if existing is not None:
+            try:
+                if existing.winfo_exists():
+                    existing.lift()
+                    existing.focus_force()
+                    return
+            except Exception:
+                pass
+
+        self._downloads_details_window = DownloadsDetailsWindow(
+            self,
+            self.downloads_engine,
+        )
+
     #################################################################
     # ACTION BAR
     #################################################################
@@ -454,12 +511,9 @@ class Dashboard(ctk.CTk):
 
     def refresh_dashboard(self):
 
-        self.write_log("🔄 Dashboard refreshed")
         self.refresh_statistics()
 
     def backup_now(self):
-
-        self.write_log("💾 Backup started")
 
         try:
             self.action_bar.backup_button.configure(state="disabled")
@@ -472,8 +526,6 @@ class Dashboard(ctk.CTk):
             success, message = DragonActions().backup_now()
 
             if success:
-                self.write_log(f"✅ Backup complete: {message}")
-
                 try:
                     self.set_card_value(
                         self.backup_card,
@@ -482,12 +534,10 @@ class Dashboard(ctk.CTk):
                 except Exception:
                     self.set_card_value(self.backup_card, "N/A")
             else:
-                self.write_log(
-                    f"❌ Backup failed: {message or 'Unknown error'}"
-                )
+                pass
 
-        except Exception as error:
-            self.write_log(f"❌ Backup failed: {error}")
+        except Exception:
+            pass
 
         finally:
             try:
@@ -497,7 +547,7 @@ class Dashboard(ctk.CTk):
 
     def open_settings(self):
 
-        self.write_log("⚙ Settings clicked")
+        pass
 
     def set_card_value(self, card, value):
 
@@ -539,29 +589,8 @@ class Dashboard(ctk.CTk):
             self.set_card_value(self.movie_card, 0)
             self.set_card_value(self.tv_card, 0)
             self.set_card_value(self.episode_card, 0)
-            self.write_log(f"⚠ Library stats unavailable: {error}")
 
-        #
-        # Active downloads
-        #
-
-        try:
-            data = DragonDownloads().get_downloads()
-
-            if data.get("connected"):
-                active = int(data.get("active", 0) or 0)
-                self.set_card_value(self.download_card, active)
-
-                if hasattr(self, "statusbar"):
-                    self.statusbar.set_downloads(active)
-            else:
-                self.set_card_value(self.download_card, 0)
-
-                if hasattr(self, "statusbar"):
-                    self.statusbar.set_downloads(0)
-
-        except Exception:
-            self.set_card_value(self.download_card, 0)
+        self.refresh_active_downloads()
 
         #
         # Last backup
@@ -575,6 +604,105 @@ class Dashboard(ctk.CTk):
             )
         except Exception:
             self.set_card_value(self.backup_card, "N/A")
+
+    def _apply_download_result(self, data):
+
+        if data.get("connected"):
+            active = int(data.get("active", 0) or 0)
+            error = ""
+            self._download_refresh_delay_ms = self.DOWNLOAD_REFRESH_MS
+        else:
+            active = 0
+            error = data.get("error", "Unable to connect to qBittorrent")
+
+            if data.get("auth_failure"):
+                self._download_refresh_delay_ms = self.DOWNLOAD_AUTH_BACKOFF_MS
+
+        self.set_card_value(self.download_card, active)
+
+        if hasattr(self, "statusbar"):
+            self.statusbar.set_downloads(active)
+            if error:
+                self.statusbar.set_status(f"qBittorrent: {error}")
+            else:
+                self.statusbar.set_status("🟢 Ready")
+
+        return active
+
+    def refresh_active_downloads(self):
+        """
+        Update the Downloads card and status bar from qBittorrent.
+        """
+
+        try:
+            data = self.downloads_engine.get_downloads()
+            return self._apply_download_result(data)
+        except Exception as error:
+            return self._apply_download_result(
+                {
+                    "connected": False,
+                    "active": 0,
+                    "error": str(error),
+                    "auth_failure": False,
+                }
+            )
+
+    def start_download_refresh(self):
+        """
+        Begin automatic active-download polling (single timer chain).
+        """
+
+        self._schedule_download_refresh(initial=True)
+
+    def _schedule_download_refresh(self, initial=False):
+
+        if self._download_refresh_after_id is not None:
+            try:
+                self.after_cancel(self._download_refresh_after_id)
+            except Exception:
+                pass
+            self._download_refresh_after_id = None
+
+        delay = 0 if initial else self._download_refresh_delay_ms
+        self._download_refresh_after_id = self.after(
+            delay,
+            self._poll_active_downloads,
+        )
+
+    def _poll_active_downloads(self):
+
+        self._download_refresh_after_id = None
+
+        if self._download_refresh_in_progress:
+            self._schedule_download_refresh()
+            return
+
+        self._download_refresh_in_progress = True
+
+        def worker():
+
+            try:
+                data = self.downloads_engine.get_downloads()
+            except Exception as exc:
+                data = {
+                    "connected": False,
+                    "active": 0,
+                    "error": str(exc),
+                    "auth_failure": False,
+                }
+
+            self.after(
+                0,
+                lambda: self._apply_active_downloads(data),
+            )
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _apply_active_downloads(self, data):
+
+        self._download_refresh_in_progress = False
+        self._apply_download_result(data)
+        self._schedule_download_refresh()
 
     #################################################################
     # COMMAND CENTER
@@ -628,118 +756,6 @@ class Dashboard(ctk.CTk):
         )
 
     #################################################################
-    # LOWER SECTION (Downloads + Dragon Monitor)
-    #################################################################
-
-    def build_lower(self):
-
-        lower = ctk.CTkFrame(
-            self.main,
-            fg_color="transparent"
-        )
-
-        lower.grid(
-            row=4,
-            column=0,
-            sticky="ew",
-            padx=10,
-            pady=(0, 4)
-        )
-
-        lower.grid_columnconfigure(0, weight=1)
-
-        #
-        # Compact Active Downloads (does not compete with Health)
-        #
-
-        downloads_wrap = ctk.CTkFrame(
-            lower,
-            fg_color="#1a1d22",
-            corner_radius=12,
-            border_width=1,
-            border_color="#2a3038",
-            height=88
-        )
-
-        downloads_wrap.grid(
-            row=0,
-            column=0,
-            sticky="ew",
-            pady=(0, 8)
-        )
-
-        downloads_wrap.grid_propagate(False)
-        downloads_wrap.grid_columnconfigure(0, weight=1)
-
-        self.downloads = DownloadsPanel(downloads_wrap)
-
-        self.downloads.grid(
-            row=0,
-            column=0,
-            sticky="nsew",
-            padx=4,
-            pady=2
-        )
-
-        #
-        # Full-width Dragon Monitor (reuses RecentActivity)
-        #
-
-        monitor = ctk.CTkFrame(
-            lower,
-            fg_color="#1a1d22",
-            corner_radius=12,
-            border_width=1,
-            border_color="#2a3038",
-            height=190
-        )
-
-        monitor.grid(
-            row=1,
-            column=0,
-            sticky="ew"
-        )
-
-        monitor.grid_propagate(False)
-        monitor.grid_columnconfigure(0, weight=1)
-        monitor.grid_rowconfigure(1, weight=1)
-
-        ctk.CTkLabel(
-            monitor,
-            text="📡 Dragon Monitor",
-            font=("Segoe UI", 16, "bold"),
-            text_color="#e5e7eb"
-        ).grid(
-            row=0,
-            column=0,
-            sticky="w",
-            padx=14,
-            pady=(10, 4)
-        )
-
-        self.activity = RecentActivity(monitor)
-
-        self.activity.grid(
-            row=1,
-            column=0,
-            sticky="nsew",
-            padx=8,
-            pady=(0, 8)
-        )
-
-        # Compatibility log sink used by write_log()
-        self.log = ctk.CTkTextbox(
-            monitor,
-            height=1,
-            width=1
-        )
-        self.log.grid_remove()
-
-        self.write_log("🐉 Dragon Media Centre started")
-        self.write_log("Version 1.2 • Build 003")
-        self.write_log("Widgets initialized")
-
-    #################################################################
     # STATUS BAR
     #################################################################
 
@@ -756,28 +772,10 @@ class Dashboard(ctk.CTk):
         )
 
     #################################################################
-    # LOGGING
-    #################################################################
-
-    def write_log(self, message):
-
-        if hasattr(self, "activity"):
-            self.activity.add(message)
-
-        if hasattr(self, "log"):
-            try:
-                self.log.insert("end", message + "\n")
-                self.log.see("end")
-            except Exception:
-                pass
-
-    #################################################################
     # LIBRARY SCANNER
     #################################################################
 
     def scan_library(self):
-
-        self.write_log("🔍 Library Scan Started")
 
         self.action_bar.scan_button.configure(state="disabled")
 
@@ -802,25 +800,12 @@ class Dashboard(ctk.CTk):
                 stats.get("episodes", 0),
             )
 
-        except Exception as error:
+        except Exception:
             self.set_card_value(self.movie_card, 0)
             self.set_card_value(self.tv_card, 0)
             self.set_card_value(self.episode_card, 0)
-            self.write_log(f"⚠ Library scan failed: {error}")
 
-        try:
-            data = DragonDownloads().get_downloads()
-
-            if data.get("connected"):
-                active = int(data.get("active", 0) or 0)
-                self.set_card_value(self.download_card, active)
-
-                if hasattr(self, "statusbar"):
-                    self.statusbar.set_downloads(active)
-            else:
-                self.set_card_value(self.download_card, 0)
-        except Exception:
-            self.set_card_value(self.download_card, 0)
+        self.refresh_active_downloads()
 
         try:
             self.set_card_value(
@@ -831,8 +816,6 @@ class Dashboard(ctk.CTk):
             self.set_card_value(self.backup_card, "N/A")
 
         self.statusbar.set_last_scan("Just Now")
-
-        self.write_log("✅ Library Scan Complete")
 
         self.action_bar.scan_button.configure(state="normal")
 

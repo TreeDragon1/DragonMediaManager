@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Dragon Media Manager
+Comment=Dragon Media Manager Command Center
+Exec=/home/treedragon/DragonMediaManager/launch.sh
+Icon=/home/treedragon/DragonMediaManager/assets/icons/dragon.png
+Terminal=false
+Type=Application
+Categories=AudioVideo;Utility;
+StartupWMClass=DragonMediaManager
+Path=/home/treedragon/DragonMediaManager

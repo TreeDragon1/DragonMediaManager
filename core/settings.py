@@ -8,6 +8,33 @@ Build: 001
 Central Configuration
 """
 
+import os
+from pathlib import Path
+
+
+def _load_local_env_file(path: Path):
+
+    if not path.is_file():
+        return
+
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_load_local_env_file(_PROJECT_ROOT / "config" / "qbittorrent.env")
+_load_local_env_file(_PROJECT_ROOT / ".env")
+
 # ==========================================================
 # SERVER CONFIGURATION
 # ==========================================================
@@ -50,8 +77,8 @@ PORTAINER_URL = f"https://{HOST}:{PORTAINER_PORT}"
 # LOGIN
 # ==========================================================
 
-QBITTORRENT_USERNAME = "admin"
-QBITTORRENT_PASSWORD = ""
+QBITTORRENT_USERNAME = os.environ.get("QBITTORRENT_USERNAME", "treedragon")
+QBITTORRENT_PASSWORD = os.environ.get("QBITTORRENT_PASSWORD", "")
 
 # ==========================================================
 # LIBRARY PATHS
