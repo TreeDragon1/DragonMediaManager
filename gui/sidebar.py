@@ -7,8 +7,6 @@ Build 9.1
 Codename: Dragon Command Center
 """
 
-
-
 import customtkinter as ctk
 
 from core.version import (
@@ -22,7 +20,7 @@ from core.actions import DragonActions
 
 class Sidebar(ctk.CTkFrame):
 
-    WIDTH = 190
+    WIDTH = 200
 
     def __init__(self, master):
 
@@ -41,34 +39,88 @@ class Sidebar(ctk.CTkFrame):
 
         self.grid_propagate(False)
 
-        #
-        # Logo
-        #
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+
+        self._build_header()
+        self._build_scroll_body()
+        self._build_footer()
+
+    # --------------------------------------------------
+    # Header / Footer
+    # --------------------------------------------------
+
+    def _build_header(self):
+
+        header = ctk.CTkFrame(self, fg_color="transparent")
+        header.grid(row=0, column=0, sticky="ew")
 
         ctk.CTkLabel(
-            self,
+            header,
             text="🐉",
             font=("Arial", 42)
         ).pack(
-            pady=(18, 0)
+            pady=(14, 0)
         )
 
         ctk.CTkLabel(
-            self,
+            header,
             text=APP_NAME.replace(
                 " ",
                 "\n",
                 1
             ),
             justify="center",
-            font=("Arial", 20, "bold")
+            font=("Arial", 18, "bold")
         ).pack(
-            pady=(0, 15)
+            pady=(0, 8)
         )
 
-        #
-        # Navigation
-        #  
+    def _build_footer(self):
+
+        ctk.CTkLabel(
+            self,
+            text=f"{VERSION}\nBuild {BUILD}",
+            justify="center",
+            font=("Arial", 11),
+            text_color="gray70",
+        ).grid(
+            row=2,
+            column=0,
+            pady=10,
+            sticky="ew",
+        )
+
+    # --------------------------------------------------
+    # Scrollable body
+    # --------------------------------------------------
+
+    def _build_scroll_body(self):
+
+        self.scroll = ctk.CTkScrollableFrame(
+            self,
+            fg_color="transparent",
+            corner_radius=0,
+            width=self.WIDTH - 8,
+        )
+
+        self.scroll.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=2,
+            pady=(0, 4),
+        )
+
+        self.scroll.grid_columnconfigure(0, weight=1)
+
+        self._build_navigation()
+        self._build_quick_launch()
+        self._build_system_actions()
+
+    def _build_navigation(self):
+
+        self.section("Navigation")
 
         self.dashboard_btn = self.button(
             "🏠 Dashboard",
@@ -93,19 +145,18 @@ class Sidebar(ctk.CTkFrame):
         self.highlight(self.dashboard_btn)
 
         ctk.CTkFrame(
-            self,
+            self.scroll,
             height=2,
             fg_color="#34373d"
         ).pack(
             fill="x",
-            padx=18,
-            pady=(12, 12)
+            padx=14,
+            pady=(10, 6)
         )
 
-        
-        #
-        # Quick Launch
-        #
+    def _build_quick_launch(self):
+
+        self.section("Quick Launch")
 
         self.button(
             "🎬 Jellyfin",
@@ -145,21 +196,49 @@ class Sidebar(ctk.CTkFrame):
         self.button(
             "🐳 Portainer",
             self.actions.open_portainer
-        )        
-        #
-        # Footer
-        #
-
-        ctk.CTkLabel(
-            self,
-            text=f"{VERSION}\nBuild {BUILD}",
-            justify="center",
-            font=("Arial", 11),
-            text_color="gray70",
-        ).pack(
-            side="bottom",
-            pady=15,
         )
+
+        ctk.CTkFrame(
+            self.scroll,
+            height=2,
+            fg_color="#34373d"
+        ).pack(
+            fill="x",
+            padx=14,
+            pady=(10, 6)
+        )
+
+    def _build_system_actions(self):
+
+        self.section("System Actions")
+
+        self.action_status = ctk.CTkLabel(
+            self.scroll,
+            text="Status: Ready",
+            font=("Segoe UI", 11),
+            text_color="lightgreen",
+        )
+        self.action_status.pack(
+            anchor="w",
+            padx=16,
+            pady=(0, 6),
+        )
+
+        system_actions = [
+            ("💾 Backup Now", self.backup_now),
+            ("🎬 Restart Jellyfin", self.restart_jellyfin),
+            ("📺 Restart Sonarr", self.restart_sonarr),
+            ("🎥 Restart Radarr", self.restart_radarr),
+            ("🔍 Restart Prowlarr", self.restart_prowlarr),
+            ("💬 Restart Bazarr", self.restart_bazarr),
+            ("⬇ Restart qBittorrent", self.restart_qbittorrent),
+            ("🎞 Restart Jellyseerr", self.restart_jellyseerr),
+            ("🔄 Restart Media Stack", self.restart_stack),
+            ("🎬 Scan Jellyfin", self.not_ready),
+        ]
+
+        for text, command in system_actions:
+            self.compact_button(text, command)
 
     # --------------------------------------------------
     # Helpers
@@ -168,26 +247,49 @@ class Sidebar(ctk.CTkFrame):
     def section(self, title):
 
         ctk.CTkLabel(
-            self,
+            self.scroll,
             text=title,
-            font=("Arial", 14, "bold"),
+            font=("Arial", 13, "bold"),
+            text_color="#c5ccd6",
         ).pack(
-            pady=(12, 6)
+            anchor="w",
+            padx=16,
+            pady=(8, 4)
         )
 
     def button(self, text, command=None):
 
         btn = ctk.CTkButton(
-            self,
+            self.scroll,
             text=text,
             width=160,
-            height=36,
+            height=32,
+            font=("Segoe UI", 12),
             command=command,
         )
 
         btn.pack(
-            padx=20,
-            pady=3,
+            padx=14,
+            pady=2,
+            fill="x",
+        )
+
+        return btn
+
+    def compact_button(self, text, command=None):
+
+        btn = ctk.CTkButton(
+            self.scroll,
+            text=text,
+            width=160,
+            height=26,
+            font=("Segoe UI", 11),
+            command=command,
+        )
+
+        btn.pack(
+            padx=14,
+            pady=1,
             fill="x",
         )
 
@@ -215,6 +317,69 @@ class Sidebar(ctk.CTkFrame):
                 btn.configure(
                     fg_color=("gray25", "gray25")
                 )
+
+    def update_status(self, success, message):
+
+        if success:
+
+            self.action_status.configure(
+                text=f"✅ {message}",
+                text_color="lightgreen"
+            )
+
+            if hasattr(self.master, "write_log"):
+                self.master.write_log(f"✅ {message}")
+
+        else:
+
+            self.action_status.configure(
+                text=f"❌ {message}",
+                text_color="red"
+            )
+
+            if hasattr(self.master, "write_log"):
+                self.master.write_log(f"❌ {message}")
+
+    # --------------------------------------------------
+    # System Actions (same callbacks as QuickActionsPanel)
+    # --------------------------------------------------
+
+    def restart_jellyfin(self):
+        self.update_status(*self.actions.restart_jellyfin())
+
+    def restart_sonarr(self):
+        self.update_status(*self.actions.restart_sonarr())
+
+    def restart_radarr(self):
+        self.update_status(*self.actions.restart_radarr())
+
+    def restart_prowlarr(self):
+        self.update_status(*self.actions.restart_prowlarr())
+
+    def restart_bazarr(self):
+        self.update_status(*self.actions.restart_bazarr())
+
+    def restart_qbittorrent(self):
+        self.update_status(*self.actions.restart_qbittorrent())
+
+    def restart_jellyseerr(self):
+        self.update_status(*self.actions.restart_jellyseerr())
+
+    def restart_stack(self):
+        self.update_status(*self.actions.restart_media_stack())
+
+    def backup_now(self):
+        self.update_status(*self.actions.backup_now())
+
+    def not_ready(self):
+
+        self.action_status.configure(
+            text="🚧 Coming Soon",
+            text_color="orange"
+        )
+
+        if hasattr(self.master, "write_log"):
+            self.master.write_log("🚧 Scan Jellyfin: Coming Soon")
 
     # --------------------------------------------------
     # Navigation

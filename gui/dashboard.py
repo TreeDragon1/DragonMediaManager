@@ -15,7 +15,6 @@ from gui.dragon_ai import DragonAIFrame
 
 from gui.widgets.action_bar import ActionBar
 from gui.widgets.downloads_panel import DownloadsPanel
-from gui.widgets.quick_actions import QuickActionsPanel
 from gui.widgets.recent_activity import RecentActivity
 from gui.widgets.status_bar import StatusBar
 
@@ -45,6 +44,7 @@ class Dashboard(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
 
         self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=0)
 
         self.build_ui()
 
@@ -60,7 +60,7 @@ class Dashboard(ctk.CTk):
         self.build_statistics()
         self.build_action_bar()
         self.build_content()
-        self.build_log()
+        self.build_lower()
         self.build_statusbar()
 
     #################################################################
@@ -74,7 +74,7 @@ class Dashboard(ctk.CTk):
         self.sidebar.grid(
             row=0,
             column=0,
-            sticky="ns"
+            sticky="nsw"
         )
 
     #################################################################
@@ -93,7 +93,7 @@ class Dashboard(ctk.CTk):
             column=1,
             sticky="nsew",
             padx=20,
-            pady=20
+            pady=(16, 8)
         )
 
         self.main.grid_columnconfigure(0, weight=1)
@@ -101,7 +101,7 @@ class Dashboard(ctk.CTk):
         self.main.grid_rowconfigure(0, weight=0)
         self.main.grid_rowconfigure(1, weight=0)
         self.main.grid_rowconfigure(2, weight=0)
-        self.main.grid_rowconfigure(3, weight=1, minsize=520)
+        self.main.grid_rowconfigure(3, weight=1, minsize=420)
         self.main.grid_rowconfigure(4, weight=0)
 
     #################################################################
@@ -472,13 +472,12 @@ class Dashboard(ctk.CTk):
             column=0,
             sticky="nsew",
             padx=10,
-            pady=(0, 10)
+            pady=(0, 8)
         )
 
         content.grid_columnconfigure(0, weight=1, uniform="command")
         content.grid_columnconfigure(1, weight=1, uniform="command")
-        content.grid_rowconfigure(0, weight=4, minsize=460)
-        content.grid_rowconfigure(1, weight=1, minsize=150)
+        content.grid_rowconfigure(0, weight=1)
 
         ###############################################################
         # Middle-left: Dragon Health (large)
@@ -491,108 +490,130 @@ class Dashboard(ctk.CTk):
             column=0,
             sticky="nsew",
             padx=(0, 10),
-            pady=(0, 10)
+            pady=0
         )
 
         ###############################################################
-        # Middle-right: Dragon AI + Quick Actions
+        # Middle-right: Dragon AI (expanded)
         ###############################################################
 
-        right = ctk.CTkFrame(
-            content,
-            fg_color="transparent"
-        )
-
-        right.grid(
-            row=0,
-            column=1,
-            sticky="nsew",
-            padx=(10, 0),
-            pady=(0, 10)
-        )
-
-        right.grid_columnconfigure(0, weight=1)
-        right.grid_rowconfigure(0, weight=1, minsize=200)
-        right.grid_rowconfigure(1, weight=1, minsize=200)
-
-        self.ai = DragonAIFrame(right)
+        self.ai = DragonAIFrame(content)
 
         self.ai.grid(
             row=0,
-            column=0,
-            sticky="nsew",
-            pady=(0, 10)
-        )
-
-        self.quick_actions = QuickActionsPanel(right)
-
-        self.quick_actions.grid(
-            row=1,
-            column=0,
-            sticky="nsew"
-        )
-
-        ###############################################################
-        # Lower row: Downloads + Recent Activity
-        ###############################################################
-
-        self.downloads = DownloadsPanel(content)
-
-        self.downloads.grid(
-            row=1,
-            column=0,
-            sticky="nsew",
-            padx=(0, 10),
-            pady=(0, 0)
-        )
-
-        self.activity = RecentActivity(content)
-
-        self.activity.grid(
-            row=1,
             column=1,
             sticky="nsew",
             padx=(10, 0),
-            pady=(0, 0)
+            pady=0
         )
 
     #################################################################
-    # DRAGON LOG
+    # LOWER SECTION (Downloads + Dragon Monitor)
     #################################################################
 
-    def build_log(self):
+    def build_lower(self):
 
-        log_frame = ctk.CTkFrame(self.main)
+        lower = ctk.CTkFrame(
+            self.main,
+            fg_color="transparent"
+        )
 
-        log_frame.grid(
+        lower.grid(
             row=4,
             column=0,
             sticky="ew",
             padx=10,
-            pady=(5, 5)
+            pady=(0, 4)
         )
+
+        lower.grid_columnconfigure(0, weight=1)
+
+        #
+        # Compact Active Downloads (does not compete with Health)
+        #
+
+        downloads_wrap = ctk.CTkFrame(
+            lower,
+            fg_color="#1a1d22",
+            corner_radius=12,
+            border_width=1,
+            border_color="#2a3038",
+            height=88
+        )
+
+        downloads_wrap.grid(
+            row=0,
+            column=0,
+            sticky="ew",
+            pady=(0, 8)
+        )
+
+        downloads_wrap.grid_propagate(False)
+        downloads_wrap.grid_columnconfigure(0, weight=1)
+
+        self.downloads = DownloadsPanel(downloads_wrap)
+
+        self.downloads.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+            padx=4,
+            pady=2
+        )
+
+        #
+        # Full-width Dragon Monitor (reuses RecentActivity)
+        #
+
+        monitor = ctk.CTkFrame(
+            lower,
+            fg_color="#1a1d22",
+            corner_radius=12,
+            border_width=1,
+            border_color="#2a3038",
+            height=190
+        )
+
+        monitor.grid(
+            row=1,
+            column=0,
+            sticky="ew"
+        )
+
+        monitor.grid_propagate(False)
+        monitor.grid_columnconfigure(0, weight=1)
+        monitor.grid_rowconfigure(1, weight=1)
 
         ctk.CTkLabel(
-            log_frame,
-            text="📜 Dragon Log",
-            font=("Arial",18,"bold")
-        ).pack(
-            anchor="w",
-            padx=10,
-            pady=(8, 4)
+            monitor,
+            text="📡 Dragon Monitor",
+            font=("Segoe UI", 16, "bold"),
+            text_color="#e5e7eb"
+        ).grid(
+            row=0,
+            column=0,
+            sticky="w",
+            padx=14,
+            pady=(10, 4)
         )
 
+        self.activity = RecentActivity(monitor)
+
+        self.activity.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=8,
+            pady=(0, 8)
+        )
+
+        # Compatibility log sink used by write_log()
         self.log = ctk.CTkTextbox(
-            log_frame,
-            height=90
+            monitor,
+            height=1,
+            width=1
         )
-
-        self.log.pack(
-            fill="both",
-            expand=True,
-            padx=10,
-            pady=(0,10)
-        )
+        self.log.grid_remove()
 
         self.write_log("🐉 Dragon Media Centre started")
         self.write_log("Version 1.2 • Build 003")
@@ -611,7 +632,7 @@ class Dashboard(ctk.CTk):
             column=1,
             sticky="ew",
             padx=20,
-            pady=(0,10)
+            pady=(0, 10)
         )
 
     #################################################################
@@ -620,11 +641,15 @@ class Dashboard(ctk.CTk):
 
     def write_log(self, message):
 
-        self.log.insert("end", message + "\n")
-        self.log.see("end")
-
         if hasattr(self, "activity"):
             self.activity.add(message)
+
+        if hasattr(self, "log"):
+            try:
+                self.log.insert("end", message + "\n")
+                self.log.see("end")
+            except Exception:
+                pass
 
     #################################################################
     # LIBRARY SCANNER
