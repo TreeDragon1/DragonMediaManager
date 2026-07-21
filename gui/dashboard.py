@@ -12,15 +12,22 @@ from core.scanner import LibraryScanner
 from core.settings import MOVIES_PATH, TV_PATH
 from core.dragon_downloads import DragonDownloads
 from core.actions import DragonActions
+from core.version import APP_NAME, VERSION_DISPLAY, WINDOW_TITLE
 
 from gui.sidebar import Sidebar
 from gui.dragon_health import DragonHealth
 from gui.dragon_ai import DragonAIFrame
 from gui.branding import load_dragon_image
 
-from gui.widgets.action_bar import ActionBar
 from gui.widgets.status_bar import StatusBar
 from gui.widgets.downloads_details import DownloadsDetailsWindow
+from gui.widgets.card_details import (
+    MoviesDetailsWindow,
+    TVShowsDetailsWindow,
+    EpisodesDetailsWindow,
+    BackupDetailsWindow,
+)
+from gui.ui_scale import configure_initial_window, get_ui_scale
 
 
 class Dashboard(ctk.CTk):
@@ -35,12 +42,13 @@ class Dashboard(ctk.CTk):
     def __init__(self):
         super().__init__()
 
+        self.withdraw()
+
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
-        self.title("Dragon Media Manager")
-        self.geometry("1850x1040")
-        self.minsize(1600, 900)
+        self.title(WINDOW_TITLE)
+        self.ui = configure_initial_window(self)
 
         self.configure(fg_color="#111418")
 
@@ -49,6 +57,11 @@ class Dashboard(ctk.CTk):
         self._download_refresh_in_progress = False
         self._download_refresh_delay_ms = self.DOWNLOAD_REFRESH_MS
         self._downloads_details_window = None
+        self._movies_details_window = None
+        self._tv_details_window = None
+        self._episodes_details_window = None
+        self._backup_details_window = None
+        self._last_scan_label = "Never"
 
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
@@ -57,6 +70,8 @@ class Dashboard(ctk.CTk):
         self.grid_rowconfigure(1, weight=0)
 
         self.build_ui()
+
+        self.deiconify()
 
     #################################################################
     # BUILD UI
@@ -68,9 +83,9 @@ class Dashboard(ctk.CTk):
         self.build_main()
         self.build_header()
         self.build_statistics()
-        self.build_action_bar()
         self.build_content()
         self.build_statusbar()
+        self.refresh_statistics()
         self.start_download_refresh()
 
     #################################################################
@@ -110,8 +125,11 @@ class Dashboard(ctk.CTk):
 
         self.main.grid_rowconfigure(0, weight=0)
         self.main.grid_rowconfigure(1, weight=0)
-        self.main.grid_rowconfigure(2, weight=0)
-        self.main.grid_rowconfigure(3, weight=1, minsize=420)
+        self.main.grid_rowconfigure(
+            2,
+            weight=1,
+            minsize=get_ui_scale().content_row_minsize(),
+        )
 
     #################################################################
     # HEADER
@@ -123,7 +141,6 @@ class Dashboard(ctk.CTk):
             self.main,
             corner_radius=15,
             fg_color="#1a1d22",
-            height=95
         )
 
         header.grid(
@@ -135,6 +152,7 @@ class Dashboard(ctk.CTk):
         )
 
         header.grid_columnconfigure(1, weight=1)
+        header.grid_columnconfigure(2, weight=0)
 
         #
         # Dragon Logo
@@ -170,7 +188,7 @@ class Dashboard(ctk.CTk):
 
         ctk.CTkLabel(
             header,
-            text="Dragon Media Manager",
+            text=APP_NAME,
             font=("Segoe UI", 28, "bold")
         ).grid(
             row=0,
@@ -205,6 +223,16 @@ class Dashboard(ctk.CTk):
             padx=20
         )
 
+        self.refresh_button = ctk.CTkButton(
+            right,
+            text="🔄",
+            width=32,
+            height=32,
+            font=("Segoe UI", 14),
+            command=self.refresh_dashboard,
+        )
+        self.refresh_button.pack(anchor="e", pady=(0, 6))
+
         self.clock_label = ctk.CTkLabel(
             right,
             text=datetime.now().strftime("%H:%M:%S"),
@@ -224,7 +252,7 @@ class Dashboard(ctk.CTk):
 
         self.version_label = ctk.CTkLabel(
             right,
-            text="Version 1.2 • Build 003",
+            text=VERSION_DISPLAY,
             font=("Segoe UI", 12),
             text_color="#9aa3af"
         )
@@ -418,7 +446,6 @@ class Dashboard(ctk.CTk):
             subtitle="Active",
             accent="#22c55e"
         )
-        self._make_downloads_card_clickable(self.download_card)
 
         self.backup_card = self.create_card(
             stats,
@@ -446,10 +473,50 @@ class Dashboard(ctk.CTk):
                 sticky="ew"
             )
 
-    def _make_downloads_card_clickable(self, card):
+        self._make_card_clickable(
+            self.movie_card,
+            self.open_movies_details,
+            hover_border="#4b7fd6",
+        )
+        self._make_card_clickable(
+            self.tv_card,
+            self.open_tv_details,
+            hover_border="#b56df0",
+        )
+        self._make_card_clickable(
+            self.episode_card,
+            self.open_episodes_details,
+            hover_border="#f7b84a",
+        )
+        self._make_card_clickable(
+            self.download_card,
+            self.open_downloads_details,
+            hover_border="#3dd66b",
+        )
+        self._make_card_clickable(
+            self.backup_card,
+            self.open_backup_details,
+            hover_border="#2ec4b6",
+        )
+
+    def _make_card_clickable(self, card, callback, hover_border="#3b4a5c"):
+
+        normal_border = "#2a3038"
 
         def on_click(_event=None):
-            self.open_downloads_details()
+            callback()
+
+        def on_enter(_event=None):
+            try:
+                card.configure(border_color=hover_border)
+            except Exception:
+                pass
+
+        def on_leave(_event=None):
+            try:
+                card.configure(border_color=normal_border)
+            except Exception:
+                pass
 
         widgets = []
 
@@ -460,6 +527,9 @@ class Dashboard(ctk.CTk):
 
         collect(card)
 
+        card.bind("<Enter>", on_enter)
+        card.bind("<Leave>", on_leave)
+
         for widget in widgets:
             try:
                 widget.configure(cursor="hand2")
@@ -467,6 +537,50 @@ class Dashboard(ctk.CTk):
                 pass
 
             widget.bind("<Button-1>", on_click)
+
+    def _open_detail_window(self, attr_name, window_class):
+
+        existing = getattr(self, attr_name, None)
+
+        if existing is not None:
+            try:
+                if existing.winfo_exists():
+                    existing.lift()
+                    existing.focus_force()
+                    return
+            except Exception:
+                pass
+
+        window = window_class(self)
+        setattr(self, attr_name, window)
+
+    def open_movies_details(self):
+
+        self._open_detail_window(
+            "_movies_details_window",
+            MoviesDetailsWindow,
+        )
+
+    def open_tv_details(self):
+
+        self._open_detail_window(
+            "_tv_details_window",
+            TVShowsDetailsWindow,
+        )
+
+    def open_episodes_details(self):
+
+        self._open_detail_window(
+            "_episodes_details_window",
+            EpisodesDetailsWindow,
+        )
+
+    def open_backup_details(self):
+
+        self._open_detail_window(
+            "_backup_details_window",
+            BackupDetailsWindow,
+        )
 
     def open_downloads_details(self):
 
@@ -486,41 +600,22 @@ class Dashboard(ctk.CTk):
             self.downloads_engine,
         )
 
-    #################################################################
-    # ACTION BAR
-    #################################################################
-
-    def build_action_bar(self):
-
-        self.action_bar = ActionBar(
-            self.main,
-            scan_callback=self.scan_library,
-            refresh_callback=self.refresh_dashboard,
-            backup_callback=self.backup_now,
-            settings_callback=self.open_settings
-        )
-
-        self.action_bar.grid(
-            row=2,
-            column=0,
-            sticky="ew",
-            padx=10,
-            pady=(0,15)
-        )
-
-
     def refresh_dashboard(self):
 
         self.refresh_statistics()
 
-    def backup_now(self):
+    def backup_now(self, button=None):
 
         try:
-            self.action_bar.backup_button.configure(state="disabled")
+            if button is not None:
+                button.configure(state="disabled")
         except Exception:
             pass
 
         self.update()
+
+        success = False
+        message = ""
 
         try:
             success, message = DragonActions().backup_now()
@@ -533,21 +628,63 @@ class Dashboard(ctk.CTk):
                     )
                 except Exception:
                     self.set_card_value(self.backup_card, "N/A")
-            else:
-                pass
 
-        except Exception:
-            pass
+            self.notify_backup_result(success, message)
+
+        except Exception as error:
+            self.notify_backup_result(False, str(error))
 
         finally:
             try:
-                self.action_bar.backup_button.configure(state="normal")
+                if button is not None:
+                    button.configure(state="normal")
             except Exception:
                 pass
 
-    def open_settings(self):
+    def notify_backup_result(self, success, message=""):
 
-        pass
+        try:
+            if hasattr(self, "ai") and hasattr(self.ai, "core"):
+                self.ai.core.report_backup_result(success, message)
+        except Exception:
+            pass
+
+    def get_library_statistics(self):
+
+        try:
+            return LibraryScanner.scan_libraries(
+                MOVIES_PATH,
+                TV_PATH,
+            )
+        except Exception:
+            return {
+                "movies": 0,
+                "tv_shows": 0,
+                "episodes": 0,
+                "categories": 0,
+                "posters": 0,
+                "nfo": 0,
+                "size_gb": 0.0,
+            }
+
+    @staticmethod
+    def get_library_path_status(path):
+
+        from pathlib import Path
+
+        library_path = Path(path)
+
+        if not library_path.exists():
+            return "Path not found"
+
+        if not library_path.is_dir():
+            return "Path is not a directory"
+
+        return "Available"
+
+    def get_last_scan_label(self):
+
+        return self._last_scan_label
 
     def set_card_value(self, card, value):
 
@@ -716,7 +853,7 @@ class Dashboard(ctk.CTk):
         )
 
         content.grid(
-            row=3,
+            row=2,
             column=0,
             sticky="nsew",
             padx=10,
@@ -775,9 +912,13 @@ class Dashboard(ctk.CTk):
     # LIBRARY SCANNER
     #################################################################
 
-    def scan_library(self):
+    def scan_library(self, button=None):
 
-        self.action_bar.scan_button.configure(state="disabled")
+        try:
+            if button is not None:
+                button.configure(state="disabled")
+        except Exception:
+            pass
 
         self.update()
 
@@ -815,9 +956,14 @@ class Dashboard(ctk.CTk):
         except Exception:
             self.set_card_value(self.backup_card, "N/A")
 
+        self._last_scan_label = "Just Now"
         self.statusbar.set_last_scan("Just Now")
 
-        self.action_bar.scan_button.configure(state="normal")
+        try:
+            if button is not None:
+                button.configure(state="normal")
+        except Exception:
+            pass
 
     #################################################################
     # APPLICATION START

@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
 
 # Virtual Environment
 .venv/
@@ -9,12 +10,27 @@ venv/
 # Local secrets (never commit)
 config/qbittorrent.env
 .env
+*.env
 
 # VS Code
 .vscode/
 
-# Logs
-logs/*.log
+# Logs and Dragon AI runtime artefacts
+logs/
+*.log
+**/dragon_ai_history.json
+**/dragon_ai.log
+**/voice_prefs.json
+
+# Temporary / generated audio
+*.wav
+
+# Piper voice models (must stay outside the repo)
+*.onnx
+
+# Service configuration backups (may contain secrets)
+backups/*.bak*
+backups/jellyseerr/
 
 # Generated Reports
 reports/*.pdf

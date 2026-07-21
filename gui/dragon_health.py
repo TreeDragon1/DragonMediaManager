@@ -16,6 +16,7 @@ import psutil
 
 from core.dragon_health import DragonHealthCore
 from gui.branding import load_dragon_image
+from gui.ui_scale import get_ui_scale
 
 
 class DragonHealth(ctk.CTkFrame):
@@ -144,7 +145,7 @@ class DragonHealth(ctk.CTkFrame):
             pady=4,
         )
 
-        size = 108
+        size = get_ui_scale().gauge_size()
         canvas = tk.Canvas(
             card,
             width=size,

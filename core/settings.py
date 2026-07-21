@@ -119,12 +119,4 @@ WINDOW_HEIGHT = 980
 
 THEME = "dark"
 
-# ==========================================================
-# BUILD INFO
-# ==========================================================
-
-APP_NAME = "🐉 Dragon Media Centre"
-
-VERSION = "1.2.0"
-
-BUILD = "001"
+# Application version/build: see core/version.py

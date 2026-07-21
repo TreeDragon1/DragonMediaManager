@@ -10,6 +10,8 @@ Founder: Peter Boulton
 
 import customtkinter as ctk
 
+from core.version import VERSION_DISPLAY
+
 
 class StatusBar(ctk.CTkFrame):
 
@@ -38,7 +40,7 @@ class StatusBar(ctk.CTkFrame):
 
         self.version_label = ctk.CTkLabel(
             self,
-            text="Build 9.0.2",
+            text=VERSION_DISPLAY,
             anchor="e"
         )
 

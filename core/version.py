@@ -1,17 +1,20 @@
 """
-Dragon Media Manager
+Dragon Media Centre
 Version Information
 
-Version: v0.1.3-alpha
-Build 9.1
-Codename: Dragon Command Center
+Central source for application name, version and build metadata.
 """
 
-APP_NAME = "Dragon Media Manager"
+APP_NAME = "Dragon Media Centre"
 
-VERSION = "v0.1.3-alpha"
+APP_VERSION = "1.2"
+BUILD_NUMBER = "003"
 
-BUILD = "9.1"
+# Backward-compatible aliases used elsewhere in the project.
+VERSION = APP_VERSION
+BUILD = BUILD_NUMBER
+
+VERSION_DISPLAY = f"Version {APP_VERSION} • Build {BUILD_NUMBER}"
 
 CODENAME = "Dragon Command Center"
 
@@ -23,14 +26,13 @@ STATUS = "Development"
 
 COPYRIGHT = "© 2026 Peter Boulton"
 
-FULL_VERSION = f"{APP_NAME} {VERSION} (Build {BUILD})"
+FULL_VERSION = f"{APP_NAME} {VERSION_DISPLAY}"
 
-WINDOW_TITLE = f"{APP_NAME} - Build {BUILD}"
+WINDOW_TITLE = f"{APP_NAME} - {VERSION_DISPLAY}"
 
 ABOUT_TEXT = f"""
 {APP_NAME}
-Version {VERSION}
-Build {BUILD}
+{VERSION_DISPLAY}
 
 Codename:
 {CODENAME}

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Dragon Media Manager launcher
+# Dragon Media Centre launcher
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

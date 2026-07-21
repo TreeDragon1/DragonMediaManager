@@ -132,6 +132,59 @@ class DragonActions:
         except Exception:
             return "N/A"
 
+    @staticmethod
+    def get_last_backup_info():
+        """
+        Return basic information about the newest backup file, if available.
+        """
+
+        info = {
+            "label": "N/A",
+            "status": "Unknown",
+            "filename": None,
+            "modified": None,
+            "folder": str(BACKUP_FOLDER),
+        }
+
+        try:
+            folder = Path(BACKUP_FOLDER)
+            info["folder"] = str(folder)
+
+            if not folder.exists() or not folder.is_dir():
+                info["status"] = "Backup folder not found"
+                return info
+
+            backups = [
+                path
+                for path in folder.iterdir()
+                if path.is_file()
+            ]
+
+            if not backups:
+                info["status"] = "No backups found"
+                return info
+
+            latest = max(
+                backups,
+                key=lambda path: path.stat().st_mtime
+            )
+
+            modified_ts = latest.stat().st_mtime
+            modified = time.strftime(
+                "%Y-%m-%d %H:%M:%S",
+                time.localtime(modified_ts),
+            )
+
+            info["label"] = DragonActions.get_last_backup_label()
+            info["status"] = "Available"
+            info["filename"] = latest.name
+            info["modified"] = modified
+            return info
+
+        except Exception:
+            info["status"] = "Unable to read backup information"
+            return info
+
     # =====================================================
     # Docker Restarts
     # =====================================================

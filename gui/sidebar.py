@@ -9,14 +9,11 @@ Codename: Dragon Command Center
 
 import customtkinter as ctk
 
-from core.version import (
-    APP_NAME,
-    VERSION,
-    BUILD,
-)
+from core.version import APP_NAME, VERSION_DISPLAY
 
 from core.actions import DragonActions
 from gui.branding import load_dragon_image
+from gui.ui_scale import get_ui_scale
 
 
 class Sidebar(ctk.CTkFrame):
@@ -25,9 +22,11 @@ class Sidebar(ctk.CTkFrame):
 
     def __init__(self, master):
 
+        self._width = get_ui_scale().sidebar_width()
+
         super().__init__(
             master,
-            width=self.WIDTH,
+            width=self._width,
             corner_radius=0
         )
 
@@ -93,7 +92,7 @@ class Sidebar(ctk.CTkFrame):
 
         ctk.CTkLabel(
             self,
-            text=f"{VERSION}\nBuild {BUILD}",
+            text=VERSION_DISPLAY,
             justify="center",
             font=("Arial", 11),
             text_color="gray70",
@@ -114,7 +113,7 @@ class Sidebar(ctk.CTkFrame):
             self,
             fg_color="transparent",
             corner_radius=0,
-            width=self.WIDTH - 8,
+            width=self._width - 8,
         )
 
         self.scroll.grid(
@@ -356,7 +355,14 @@ class Sidebar(ctk.CTkFrame):
         self.update_status(*self.actions.restart_media_stack())
 
     def backup_now(self):
-        self.update_status(*self.actions.backup_now())
+        success, message = self.actions.backup_now()
+        self.update_status(success, message)
+
+        try:
+            if hasattr(self.master, "notify_backup_result"):
+                self.master.notify_backup_result(success, message)
+        except Exception:
+            pass
 
     def not_ready(self):
 

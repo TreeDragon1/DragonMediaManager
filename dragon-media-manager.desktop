@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=Dragon Media Manager
-Comment=Dragon Media Manager Command Center
+Name=Dragon Media Centre
+Comment=Dragon Media Centre Command Center
 Exec=/home/treedragon/DragonMediaManager/launch.sh
 Icon=/home/treedragon/DragonMediaManager/assets/icons/dragon.png
 Terminal=false
